@@ -1,0 +1,138 @@
+
+* Go to the [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/ml/) and find a dataset for supervised classification. Every student MUST use a different dataset so you MUST get approved for which you can going to use. This can be the same dataset you used for the unsupervised clustering as long as the data has some labeled data.  
+
+```{r}
+
+require("ggplot2");
+require("C50");
+require("gmodels");
+require("rpart");
+require("RColorBrewer");
+require("tree");
+require("party");
+#####
+data_address<-"http://archive.ics.uci.edu/ml/machine-learning-databases/00292/Wholesale%20customers%20data.csv"
+data0<-read.csv(file=data_address)
+head(data0)
+summary(data0)
+
+#Randomly Shuffling Data
+shuff<-runif(nrow(data0))
+data1<-data0[order(shuff),]
+#####
+
+#Scaling data
+data2<-as.data.frame(lapply(data1[,-1], scale))
+head(data2)
+#####
+
+# Constructing Training and Test Data
+0.2*nrow(data1)
+X.training<-data2[1:360,]
+Y.training<-data1[1:360,1]
+X.test<-data2[361:nrow(data1),]
+Y.test<-data1[361:nrow(data1),1]
+table(Y.training)
+table(Y.test)
+#####
+
+```
+
+
+* Generate a Decision Tree with your data. You canuse any method/package you wish. Answer the following questions:
+
+```{r}
+
+#Decision Trees
+set.seed(12345)
+model <- C5.0(X.training, as.factor(Y.training))
+summary(model)
+predict.test<- predict(model, X.test)
+CrossTable(Y.test, predict.test,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual type', 'predicted type'))
+
+# misclassification on Test Data =9
+
+##Ploting the decision Tree: 
+plot(model, uniform=T, main="Classification Tree for Mushrooms Types")
+
+
+
+####### 
+
+```
+
+
+*Does the size of the data set make a difference?
+
+To figure out whether size of the data has any effect on the accuracy of the classification using decision trees, lets deal with the half sized data:
+```{r}
+
+#Lets go with the half size training set:
+
+set.seed(12345)
+model2 <- C5.0(X.training[1:nrow(X.training)/2,], as.factor(Y.training[1:length(Y.training)/2]))
+summary(model2)
+predict.test<- predict(model2, X.test)
+CrossTable(Y.test, predict.test,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual type', 'predicted type'))
+
+# misclassification on Test Data =7
+
+##Ploting the decision Tree: 
+plot(model2, uniform=T, main="Classification Tree for Mushrooms Types")
+
+
+
+```
+As we see the model dramatically changed. Moreover,the accuracy also slightly improved. 
+
+In the model with the smaller sized training data, more features are being used.
+
+
+
+*Do the rules make sense? If so why did the algorithm generate good rules? If not, why not?   
+
+The rules make sense to some extent. For instance the most important attribute
+which is selected to be Detergents_paper in fact has been chosen wisely and can be a 
+great seprator.Beacause, retailor generally do not serve customers with restroom and on the other hand Horeca, always have restrooms since people are sitting there for quite a while. However, if we go down deep the tree, we see sometimes there is lack of sense in attribute selections which in fact seems to happen since the algorithm merely consider the value of information gain which is sensitive to the training data. 
+
+
+
+*Does scaling, normalization or leaving the data unscaled make a difference?
+    
+```{r}
+X.training<-data1[1:360,]
+Y.training<-data1[1:360,1]
+X.test<-data1[361:nrow(data1),]
+Y.test<-data1[361:nrow(data1),1]
+table(Y.training)
+table(Y.test)
+set.seed(12345)
+model <- C5.0(X.training, as.factor(Y.training))
+summary(model)
+predict.test<- predict(model, X.test)
+CrossTable(Y.test, predict.test,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual type', 'predicted type'))
+
+# misclassification on Test Data =9
+
+```
+
+
+Ploting the decision Tree: 
+```{r}
+plot(model, uniform=T, main="Classification Tree for Mushrooms Types")
+
+```
+intrestingly, the data has been classified with the accuracy of 100% when no scaling process is done.
+That coneys the message that for decision tree, normalizing might complicate the training data and might lower the accuracy of the prediction over the test data.
+This also would make sense since there is no distance measure so there would no need to normalization.
+
+
+
+ 
+    

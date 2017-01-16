@@ -1,0 +1,424 @@
+# Assingment
+
+Use simulated annealing to search for a solution to the famous Travelling Salesman Problem in R.  
+
+
+
+
+######################################################################
+
+       
+
+
+
+
+
+```{r}
+#install.packages("ggplot2")
+#install.packages("stats")
+require(ggplot2)
+require(stats)
+```
+
+
+```{r}
+
+# Distance function
+distance <- function(sq) 
+  {  # Target function
+  sq2 <- embed(sq, 2)
+  return(as.numeric(sum(CityDistMatx[cbind(sq2[,2],sq2[,1])])))
+ }
+
+
+# Generate new candidates
+GenSeq <- function(sq) {  # Generate new candidate sequence
+  idx <- seq(2, NROW(CityDistMatx)-1, by=1)
+  ChangePoints <- sample(idx, size=2, replace=FALSE)
+  tmp <- sq[ChangePoints[1]]
+  sq[ChangePoints[1]] <- sq[ChangePoints[2]]
+  sq[ChangePoints[2]] <- tmp
+  return(as.numeric(sq))
+}
+
+```
+
+In the begining, we use uclidian distance for future use when are comparing 
+
+```{r}
+
+CityDistMatx <- as.matrix(eurodist)
+CityDistMatx
+
+cities<-labels(eurodist)
+cities
+
+initial.tour <- c(1,2:NROW(CityDistMatx),1)  
+# Initial sequence
+initial.tour
+initial.d<-distance(initial.tour)
+initial.d
+for(i in 1:length(initial.tour))
+{
+  print(cities[initial.tour[i]])  
+}  
+set.seed(333) # chosen to get a good soln relatively quickly
+
+#  box-constrained optimization and simulated annealing
+# method = "SANN" performs simulated annealing
+# Method "SANN" is by default a variant of simulated annealing given in Belisle (1992)
+res <- optim(initial.tour, distance, GenSeq, method = "SANN",
+control = list(maxit = 30000, temp = 2000,trace=TRUE,REPORT = 500))
+
+res  # Near optimum distance around 12842
+final.tour<-res$par
+final.tour
+final.d<-distance(final.tour)
+final.d
+initial.d
+final.d/initial.d
+
+
+cities.xy <- cmdscale(eurodist)
+cities.xy
+for(i in 1:length(final.tour))
+{
+  print(cities[final.tour[i]])  
+}  
+rx <- range(x <- cities.xy[,1])
+ry <- range(y <- -cities.xy[,2])
+rx
+ry
+x
+y
+initial.tour
+## remove last element to draw arrows from point to point
+s <-head(initial.tour, -1)
+s
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="initial solution of traveling salesman problem")
+arrows(x[s], y[s], x[s+1], y[s+1], col="green")
+text(x, y, labels(cities), cex=0.8)
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="initial solution of traveling salesman problem")
+arrows(x[s], y[s], x[s+1], y[s+1], col="green")
+text(x, y, labels(cities), cex=0.8)
+text(x, y, labels(eurodist), cex=0.8)
+final.tour
+## draw lines from point to point
+s <-head(final.tour, -1)
+s
+df = data.frame(x[s],y[s])
+df
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="optimized simulated annealing traveling salesman problem")
+lines(df$x, df$y, col="red")
+text(x, y, labels(cities), cex=0.8)
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="optimized simulated annealing traveling salesman problem")
+lines(df$x, df$y, col="red")
+text(x, y, labels(cities), cex=0.8)
+text(x, y, labels(eurodist), cex=0.8)
+```
+
+
+
+ Answer the following questions:  
+ Q1)  Write a different distance function. How does the effect the final solution?  
+
+
+
+Here is a Manhatan Distance I wrote:
+
+```{r}
+
+# Creating Manhatan matrix
+
+cities.xy <- cmdscale(eurodist)
+cities.xy<-(cities.xy)
+
+ManhDistmat<-matrix(, nrow = nrow(cities.xy), ncol =nrow(cities.xy))
+
+for (i in 1:nrow(cities.xy))
+{ 
+  for (j in 1:nrow(cities.xy))
+  {
+    ManhDistmat[i,j]=as.numeric(abs(cities.xy[i,1]-cities.xy[j,1]))+as.numeric(abs(cities.xy[i,2]-cities.xy[j,2]))
+    
+  }
+}
+
+
+# Manhatan Distance function
+distance2 <- function(sq) 
+  {  # Target function
+  sq2 <- embed(sq, 2)
+  return(as.numeric(sum(ManhDistmat[cbind(sq2[,2],sq2[,1])])))
+ }
+
+
+```
+
+
+Now we use manhatan distance function to see how the results are different from 
+Eculucidian distance.
+
+
+
+```{r}
+
+CityDistMatx <- as.matrix(eurodist)
+CityDistMatx
+
+cities<-labels(eurodist)
+cities
+
+initial.tour <- c(1,2:NROW(CityDistMatx),1)  
+# Initial sequence
+initial.tour
+initial.d<-distance2(initial.tour)
+initial.d
+for(i in 1:length(initial.tour))
+{
+  print(cities[initial.tour[i]])  
+}  
+set.seed(333) # chosen to get a good soln relatively quickly
+
+#  box-constrained optimization and simulated annealing
+# method = "SANN" performs simulated annealing
+# Method "SANN" is by default a variant of simulated annealing given in Belisle (1992)
+res <- optim(initial.tour, distance2, GenSeq, method = "SANN",
+control = list(maxit = 30000, temp = 2000,trace=TRUE,REPORT = 500))
+
+res  # Near optimum distance around 12842
+final.tour<-res$par
+final.tour
+final.d<-distance2(final.tour)
+final.d
+initial.d
+final.d/initial.d
+
+
+cities.xy <- cmdscale(eurodist)
+cities.xy
+for(i in 1:length(final.tour))
+{
+  print(cities[final.tour[i]])  
+}  
+rx <- range(x <- cities.xy[,1])
+ry <- range(y <- -cities.xy[,2])
+rx
+ry
+x
+y
+initial.tour
+## remove last element to draw arrows from point to point
+s <-head(initial.tour, -1)
+s
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="initial solution of traveling salesman problem")
+arrows(x[s], y[s], x[s+1], y[s+1], col="green")
+text(x, y, labels(cities), cex=0.8)
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="initial solution of traveling salesman problem")
+arrows(x[s], y[s], x[s+1], y[s+1], col="green")
+text(x, y, labels(cities), cex=0.8)
+text(x, y, labels(eurodist), cex=0.8)
+final.tour
+## draw lines from point to point
+s <-head(final.tour, -1)
+s
+df = data.frame(x[s],y[s])
+df
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="optimized simulated annealing traveling salesman problem")
+lines(df$x, df$y, col="red")
+text(x, y, labels(cities), cex=0.8)
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="optimized simulated annealing traveling salesman problem")
+lines(df$x, df$y, col="red")
+text(x, y, labels(cities), cex=0.8)
+text(x, y, labels(eurodist), cex=0.8)
+```
+
+
+As we can see using Manhatan Distance function results in  18387 distance compared to 12907 which resulted from Eulicidian Distance. 
+
+
+
+
+
+
+#########################################################################
+
+Q2)  * Does scaling, normalization or leaving the data unscaled make a difference for simulated annealing? 
+
+
+
+```{r}
+
+CityDistMatx <- as.matrix(eurodist)
+CityDistMatx<-scale(CityDistMatx)
+
+cities<-labels(eurodist)
+cities
+
+initial.tour <- c(1,2:NROW(CityDistMatx),1)  
+# Initial sequence
+initial.tour
+initial.d<-distance(initial.tour)
+initial.d
+for(i in 1:length(initial.tour))
+{
+  print(cities[initial.tour[i]])  
+}  
+set.seed(333) # chosen to get a good soln relatively quickly
+
+#  box-constrained optimization and simulated annealing
+# method = "SANN" performs simulated annealing
+# Method "SANN" is by default a variant of simulated annealing given in Belisle (1992)
+res <- optim(initial.tour, distance, GenSeq, method = "SANN",
+control = list(maxit = 30000, temp = 2000,trace=TRUE,REPORT = 500))
+
+res  # Near optimum distance around 12842
+final.tour<-res$par
+final.tour
+final.d<-distance(final.tour)
+final.d
+initial.d
+final.d/initial.d
+
+
+cities.xy <- cmdscale(eurodist)
+cities.xy
+for(i in 1:length(final.tour))
+{
+  print(cities[final.tour[i]])  
+}  
+rx <- range(x <- cities.xy[,1])
+ry <- range(y <- -cities.xy[,2])
+rx
+ry
+x
+y
+initial.tour
+## remove last element to draw arrows from point to point
+s <-head(initial.tour, -1)
+s
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="initial solution of traveling salesman problem")
+arrows(x[s], y[s], x[s+1], y[s+1], col="green")
+text(x, y, labels(cities), cex=0.8)
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="initial solution of traveling salesman problem")
+arrows(x[s], y[s], x[s+1], y[s+1], col="green")
+text(x, y, labels(cities), cex=0.8)
+text(x, y, labels(eurodist), cex=0.8)
+final.tour
+## draw lines from point to point
+s <-head(final.tour, -1)
+s
+df = data.frame(x[s],y[s])
+df
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="optimized simulated annealing traveling salesman problem")
+lines(df$x, df$y, col="red")
+text(x, y, labels(cities), cex=0.8)
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="optimized simulated annealing traveling salesman problem")
+lines(df$x, df$y, col="red")
+text(x, y, labels(cities), cex=0.8)
+text(x, y, labels(eurodist), cex=0.8)
+
+```
+
+The path we end up after scaling is different from unscaled distances. In fact the path is screwed up and non-sense which leads us to conclude that for path optimization, scaling is NOT a good idea. 
+
+
+
+
+
+############################################################
+
+
+Q3) Try a few differnt initial tours. How does the effect the final solution?
+
+
+```{r}
+
+
+CityDistMatx <- as.matrix(eurodist)
+CityDistMatx
+
+cities<-labels(eurodist)
+cities
+
+# Randomizing the initial path: 
+
+initial.tour <- c(1,sample(2:NROW(CityDistMatx), NROW(CityDistMatx)-1),1)  
+# Initial sequence
+initial.tour
+initial.d<-distance(initial.tour)
+initial.d
+for(i in 1:length(initial.tour))
+{
+  print(cities[initial.tour[i]])  
+}  
+set.seed(333) # chosen to get a good soln relatively quickly
+
+#  box-constrained optimization and simulated annealing
+# method = "SANN" performs simulated annealing
+# Method "SANN" is by default a variant of simulated annealing given in Belisle (1992)
+res <- optim(initial.tour, distance, GenSeq, method = "SANN",
+control = list(maxit = 30000, temp = 2000,trace=TRUE,REPORT = 500))
+
+res  # Near optimum distance around 12842
+final.tour<-res$par
+final.tour
+final.d<-distance(final.tour)
+final.d
+initial.d
+final.d/initial.d
+
+
+cities.xy <- cmdscale(eurodist)
+cities.xy
+for(i in 1:length(final.tour))
+{
+  print(cities[final.tour[i]])  
+}  
+rx <- range(x <- cities.xy[,1])
+ry <- range(y <- -cities.xy[,2])
+rx
+ry
+x
+y
+initial.tour
+## remove last element to draw arrows from point to point
+s <-head(initial.tour, -1)
+s
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="initial solution of traveling salesman problem")
+arrows(x[s], y[s], x[s+1], y[s+1], col="green")
+text(x, y, labels(cities), cex=0.8)
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="initial solution of traveling salesman problem")
+arrows(x[s], y[s], x[s+1], y[s+1], col="green")
+text(x, y, labels(cities), cex=0.8)
+text(x, y, labels(eurodist), cex=0.8)
+final.tour
+## draw lines from point to point
+s <-head(final.tour, -1)
+s
+df = data.frame(x[s],y[s])
+df
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="optimized simulated annealing traveling salesman problem")
+lines(df$x, df$y, col="red")
+text(x, y, labels(cities), cex=0.8)
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="optimized simulated annealing traveling salesman problem")
+lines(df$x, df$y, col="red")
+text(x, y, labels(cities), cex=0.8)
+text(x, y, labels(eurodist), cex=0.8)
+
+
+```
+
+
+As we see by setting a random initial route we will end up a different result
+. The total distance with this random initialization is 14862 as opposed to the previous manual initialization  which led the path length 12907.
+However, If we let the algorithm converges, we will end up all the same value
+of total distance and same route. 
+
+
+
+
+
+
+
+

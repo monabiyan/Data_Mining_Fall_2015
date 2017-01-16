@@ -1,0 +1,289 @@
+##This homework assignment focuses on Clustering. You will provide a written analysis based on the following information:
+
+## Question 1)
+First, go to the UC Irvine Machine Learning Repository at https://archive.ics.uci.edu/ml/ and find a dataset for clustering. Note that every student MUST use a different dataset so you MUST get approved for which data you are going to use. You will use this dataset for this module on unsupervised learning and the next on supervised learning.
+
+### dataset chosen: Energy Efficiency Data Set
+
+link: https://archive.ics.uci.edu/ml/datasets/Energy+efficiency
+
+###explanation: 
+ This study looked into assessing the heating load and cooling load requirements of buildings (that is, energy efficiency) as a function of building parameters.
+
+###Attribute Information:
+
+The dataset contains eight attributes (or features, denoted by X1...X8) and two responses (or outcomes, denoted by y1 and y2). The aim is to use the eight features to predict each of the two responses. 
+
+Specifically: 
+X1  Relative Compactness 
+X2  Surface Area 
+X3	Wall Area 
+X4	Roof Area 
+X5	Overall Height 
+X6	Orientation 
+X7	Glazing Area 
+X8	Glazing Area Distribution 
+y1	Heating Load 
+y2	Cooling Load
+
+source: UC Irvine
+
+```{r}
+#install.packages("ggplot2");
+#install.packages("cluster");
+#install.packages("amap");
+install.packages("useful");
+
+require(ggplot2)
+## Loading required package: ggplot2
+require(cluster)
+## Loading required package: cluster
+require(amap)
+## Loading required package: amap
+require(useful)
+## Loading required package: useful
+
+
+
+
+building0<-read.csv(file="C:/Users/nabian.m/OneDrive/Fall 2015/intr. Data mining and Machine learning/Week4/ENB2012_data.csv",header=TRUE)
+
+head (building0)
+building0$X=NULL
+building0$X.1=NULL
+head(building0)
+str(building0)
+
+sum(is.na(building0$X4))
+
+building1<-building0
+building1$X4=NULL
+building1<-na.omit(building1)
+g<-lm(Y1~X1+X2+X3+X5+X6+X7+X8,data=building1)
+summary(g)
+```
+
+## Question 2)
+Next, cluster some of your data using k-means, PAM and hierarchical clustering.
+
+##Answer: 
+since we are doing unsupervised learning, we forget the labels Y1 and Y2 and try to work with the attributes :
+{X1,X2,X3,X5,X6,X7,X8}
+
+```{r}
+XX<-building1[c("X1","X2","X3","X5","X6","X7","X8")]
+require(useful)
+# finding the best K:
+```
+
+### Kmeans
+```{r}
+best<-FitKMeans(XX,max.clusters=10, seed=111) 
+PlotHartigan(best)
+#The Hartigan method suggests k=4;
+#finding the global minimum for clustering
+
+
+k=3;
+trails<-40
+kmean_cluster<-kmeans(XX,k,nstart=trails)
+kmean_cluster
+
+kmean_cluster$cluster
+kmean_cluster$centers
+
+```
+### K_mediods (PAM)
+
+```{r}
+kmed_cluster<-pam(XX,3,keep.dis=TRUE,keep.data=TRUE)
+plot(kmed_cluster, which.plots = 2)
+kmed_cluster$cluster
+kmed_cluster$clusinfo
+
+```
+
+```{r}
+
+a<-hclust(d=dist(XX),method="single")
+plot(a,labels=FALSE)
+rect.hclust(a,k=3,border="red")
+```
+
+
+We can recieve this information that buildings are divided into 3 clusters in terms of their size:
+
+according to kmeans centroids:
+
+cluster1 : medium compactness, medium surface area, small wall area, low height 
+
+cluster2 : small compactness, high surface area, high wall area, low height 
+
+cluster3 : high compactness, low surface area, medium wall area, large height 
+
+
+## Question 3)
+
+Finally, answer the following questions:
+
+How did you choose a k for k-means? 
+
+intuitively speaking, we can say buildings are most likely divided into 3 in terms of size. 
+
+I used the FitKmeasn function to get a sense how increasing k leads to loweing the errors. Moreover, 
+```{r}
+best<-FitKMeans(XX,max.clusters=10, seed=111) 
+PlotHartigan(best)
+
+
+```
+
+as we can see choosing k=3 is a reasonable choice. 
+
+## Question 4)
+Evaluate the model performance. How do the clustering approaches compare on the same data? 
+
+lets see the Kmean and kmedian: 
+
+```{r}
+kmean_cluster 
+```
+So cluster1 ,2 and 3 have 192, 192 and 384 elements respectively.
+
+
+
+```{r}
+kmed_cluster
+
+```
+So cluster1 ,2 and 3 have 192, 192 and 384 elements respectively. 
+
+As we see we have exactltly the same sizes, so clustering assignments are all happened the same. 
+
+based on the heirarchial clustering we can recieve the same message.
+So basically all these three methods have resulted in the same clustering.
+
+
+## Question 5)
+Generate and plot confusion matrices for the k-means and PAM. What do they tell you?
+
+```{r}
+cm<-table(kmean_cluster$cluster,kmed_cluster$clustering )
+cm
+```
+Confusion table is telling that all those labeled as 3 exactly overlap in both. Moreover, having 0 in other points demonstrate the fact that labeling 1 and 2 in kmean and kmed clustering is switched. So 0 means that clusterings in both method are exactly the same. 
+
+
+
+
+## Question 6) 
+Generate centroid plots against the 1st two discriminant functions for k-means and PAM. What do they tell you? 
+
+
+```{r}
+clusplot(XX, kmean_cluster$cluster, color=TRUE, shade=TRUE, labels=2, lines=0)
+
+clusplot(XX, kmed_cluster$cluster, color=TRUE, shade=TRUE, labels=2, lines=0)
+
+```
+
+  the clusplot finds the two dimension that explains the highest posibility variability of the data and plots the centriods and clusters.
+  
+  As we can see the data points are clustered in therms of component 1 and not component 2. Component 1 could be the size. We can also underestand that clustering happened exactly the same in those two with the exception of difference in the labeling. 
+
+
+
+## Question 7)
+Generate silhouette plots for PAM. What do they tell you?
+
+```{r}
+kmed_cluster<-pam(XX,3,keep.dis=TRUE,keep.data=TRUE)
+si <- silhouette(kmed_cluster)
+plot(si,col = c("red", "green", "blue")) 
+# silhouette plot
+
+```
+
+this plot extract Silhouette Information from Clustering with k=3. 
+The plot indicates that there is a good structure to the clusters, with most observations seeming to belong to the cluster that they're in. 
+
+
+## Question 8) 
+For the hierarchical clustering use all linkage methods (Single Link, Complete Link, Average Link, Centroid and Minimum energy clustering) and generate dendograms. How do they compare on the same data? 
+```{r}
+XX.h.clust.si<- hclust(dist(XX), method = "single")
+XX.h.clust.co<- hclust(dist(XX), method = "complete")
+XX.h.clust.av<- hclust(dist(XX), method = "average")
+XX.h.clust.ce<- hclust(dist(XX), method = "centroid")
+plot(XX.h.clust.si, labels = FALSE)
+plot(XX.h.clust.co, labels = FALSE)
+plot(XX.h.clust.av, labels = FALSE)
+plot(XX.h.clust.ce, labels = FALSE)
+
+```
+Generally, they are not poviding exactly the same results. However, for # of clustering equal to 3, we have same results in 'Single' and 'average' methods but very different in the other two methods. 
+'Single' and 'average' method clustering also projects a sensible outcomes thus would be appropriate for this data set. 
+
+## Question 9) 
+
+For the hierarchical clustering use both agglomerative and divisive clustering with a linkage method of your choice and generate dendograms. How do they compare on the same data? 
+```{r}
+#agglomerative clustering
+
+d <- dist(XX, method = "euclidean") # distance matrix
+fit <- hclust(d, method="ward") 
+plot(fit) # display dendogram
+groups <- cutree(fit, k=3) # cut tree into 5 clusters
+# draw dendogram with red borders around the 5 clusters 
+rect.hclust(fit, k=3, border="red")
+
+#divisive clustering
+
+
+dv <- diana(XX, metric = "euclidean", stand = TRUE)
+plot(dv)
+## Cut into 2 groups:
+dv2 <- cutree(as.hclust(dv), k = 3)
+
+```
+
+These tow methods are completely different in terms of the results. divisible clustering, is very sensitive and provides many clusters for large heights, however, agglomerative clustering is brancing out mostly in lower height. 
+FOr this particular data set I believe agglomerative clustering provides more meaningful information. 
+
+## Question 10)
+
+For the hierarchical clustering use centroid clustering and squared Euclidean distance and generate dendograms. How do they compare on the same data?
+```{r}
+require(amap)
+h_c <- hcluster(XX,link = "ave") 
+plot(h_c)
+plot(h_c, hang = -1)
+
+
+### centroid clustering and squared Euclidean distance
+h_c<- hclust(dist(XX)^2, "cen")
+
+### Cutting the tree into 20 clusters and reconstruct upper part of the tree from cluster center
+memb <- cutree(h_c, k = 20)
+cent <- NULL
+for(k in 1:20){
+  cent <- rbind(cent, colMeans(XX[,-1][memb == k, , drop = FALSE]))
+}
+h_c1 <- hclust(dist(cent)^2, method = "cen", members = table(memb))
+opar <- par(mfrow = c(1, 2))
+plot(h_c,  labels = FALSE, hang = -1, main = "Original Tree")
+plot(h_c1, labels = FALSE, hang = -1, main = "Re-start from 20 clusters")
+par(opar)
+```
+
+For K<6 They are very very similar and they bring out the same result. However, for values higher than k>6 they differ. 
+
+
+
+
+As a reminder, please provide a written analysis/report as an .Rmd file. Note: This is a graded assignment due by Monday (Oct 12th) at 11:59 pm.
+
+
+
+
+

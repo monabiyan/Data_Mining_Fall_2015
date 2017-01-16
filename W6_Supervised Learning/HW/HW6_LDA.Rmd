@@ -1,0 +1,168 @@
+
+* Go to the [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/ml/) and find a dataset for supervised classification. Every student MUST use a different dataset so you MUST get approved for which you can going to use. This can be the same dataset you used for the unsupervised clustering as long as the data has some labeled data.  
+
+```{r}
+
+data_address<-"http://archive.ics.uci.edu/ml/machine-learning-databases/00292/Wholesale%20customers%20data.csv"
+data0<-read.csv(file=data_address)
+head(data0)
+summary(data0)
+
+#Randomly Shuffling Data
+set.seed(12345)
+shuff<-runif(nrow(data0))
+data1<-data0[order(shuff),]
+#####
+
+#Scaling data
+data2<-as.data.frame(lapply(data1[,-1], scale))
+head(data2)
+#####
+
+# Constructing Training and Test Data
+0.2*nrow(data1)
+X.training<-data2[1:360,]
+Y.training<-data1[1:360,1]
+X.test<-data2[361:nrow(data1),]
+Y.test<-data1[361:nrow(data1),1]
+table(Y.training)
+table(Y.test)
+#####
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+* Classify your data using Linear Discriminant Analysis (LDA). Answer the following questions:
+
+```{r}
+data.training <- cbind(X.training,Y=Y.training)
+data.test <- cbind(X.test,Y=Y.test)
+
+names(data.training)
+lsa.m1<-lda(Y ~., data=data.training)
+lsa.m1
+
+lsa.m1.p<-predict(lsa.m1, newdata = X.test)
+lsa.m1.p$class
+
+cm.m1<-table(lsa.m1.p$class,Y.test)
+cm.m1
+#10 misclassification
+```
+
+
+
+
+
+
+
+*Does the number of predictor variables for LDA make a difference? Try for a range of models using differing numbers of predictor variables.
+
+```{r}
+
+##LDA method with 2 attributes
+
+names(data.training)
+lsa.m2<-lda(Y ~Region+Fresh, data=data.training)
+lsa.m2
+
+lsa.m2.p<-predict(lsa.m2, newdata = X.test[,c(1,2)])
+lsa.m2.p$class
+
+cm.m2<-table(lsa.m2.p$class,Y.test)
+cm.m2
+
+#24 misclassification
+
+
+##LDA method with 3 attributes
+
+names(data.training)
+lsa.m3<-lda(Y ~Region+Fresh+Milk, data=data.training)
+lsa.m3
+
+lsa.m3.p<-predict(lsa.m3, newdata = X.test[,c(1,2,3)])
+lsa.m3.p$class
+
+cm.m3<-table(lsa.m3.p$class,Y.test)
+cm.m3
+
+#15 misclassification
+
+
+##LDA method with 4 attributes
+
+names(data.training)
+lsa.m4<-lda(Y ~Region+Fresh+Milk+Grocery, data=data.training)
+lsa.m4
+
+lsa.m4.p<-predict(lsa.m4, newdata = X.test[,c(1,2,3,4)])
+lsa.m4.p$class
+
+cm.m4<-table(lsa.m4.p$class,Y.test)
+cm.m4
+
+#12 misclassification
+
+
+```
+
+So as we see, by increasing the number of attributes, we get more accurate prediction based on the confusion table. 
+
+
+
+
+
+
+
+*What determines the number of linear discriminants in LDA.    
+
+Since we have two categories, there would be need for one seperator line, or in otherwords, we need one linear discriminant.
+
+
+
+
+
+
+
+*Does scaling, normalization or leaving the data unscaled make a difference for LDA?
+```{r}
+
+#The effect of not scaling:
+
+X.training<-data1[1:360,-1]
+Y.training<-data1[1:360,1]
+X.test<-data1[361:nrow(data1),-1]
+Y.test<-data1[361:nrow(data1),1]
+data.training <- cbind(X.training,Y=Y.training)
+data.test <- cbind(X.test,Y=Y.test)
+
+names(data.training)
+head(data.training)
+
+
+lsa.m1<-lda(Y ~., data=data.training)
+lsa.m1
+
+lsa.m1.p<-predict(lsa.m1, newdata = X.test)
+lsa.m1.p$class
+
+cm.m1<-table(lsa.m1.p$class,Y.test)
+cm.m1
+#10 misclassification
+```
+
+in this particular data set, there seems to be no change in the number of misclassification with respect to the scaled data. i.e. before scaling and after scaling the data, we ended up same classification error. However, it is not possible to generalize any statment. This result might showed up specifically for this data set and might vary by dataset given for trtaining and test. 
+
+
+

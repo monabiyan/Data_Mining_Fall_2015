@@ -1,0 +1,194 @@
+* Create a term by document matrix for the Dr. Seuss quote. Assume each sentence is a new documment. 
+
+```{r}
+library(tm)
+
+s<-"You have brains in your head. You have feet in your shoes. You can steer yourself in any direction you choose. You're on your own, and you know what you know. And you are the guy who'll decide where to go."
+s
+
+
+str<-strsplit(s,"\\.")[[1]]  #This not only seprate the string but removes the "."
+str
+length(str)
+seuss.corpus <- Corpus(DataframeSource(data.frame(str)))    #tm package
+seuss.corpus
+
+inspect(seuss.corpus)
+
+# Eliminating Extra Whitespace
+seuss.clean<-tm_map(seuss.corpus, stripWhitespace)
+# stemDocument
+seuss.clean.stem<-tm_map(seuss.clean, stemDocument)
+seuss.clean.stem
+
+writeLines(as.character(seuss.clean.stem[1]))
+
+seuss.clean.lc <- tm_map(seuss.clean, content_transformer(tolower))
+writeLines(as.character(seuss.clean.lc[1]))
+
+#seuss.clean <- tm_map(seuss.clean.lc, removeWords, stopwords("english"))
+writeLines(as.character(seuss.clean.lc[1]))
+
+seuss.tdm <- TermDocumentMatrix(seuss.clean, control = list(minWordLength = 1))
+seuss.tdm
+
+inspect(seuss.tdm)
+```
+
+
+* Calculate the td-idf for three terms in the text. Assume each sentence is a new documment. 
+
+We chose :  "you", "shoes" and "know":
+
+
+```{r}
+#This function returns how many occurance w happens in the the d sentence.  
+search_word<-function(w,d)
+{
+  if(as.numeric(gregexpr(w,d)[[1]][1])==-1)
+  {return(0)}
+  else{
+  return(length(as.numeric(gregexpr(w,d)[[1]])))
+  }
+}
+
+###############
+w="you"
+you=c()
+for (i in 1:length(str))
+{
+  you[i]<-search_word(w,str[i])
+}
+you
+################
+w="shoes"
+shoes=c()
+for (i in 1:length(str))
+{
+  shoes[i]<-search_word(w,str[i])
+}
+shoes
+###############
+w="know"
+know=c()
+for (i in 1:length(str))
+{
+  know[i]<-search_word(w,str[i])
+}
+know
+###############
+
+# tf function returns 'tf vector' of a word 'w' in the document 'D'. This function requieres function: search_word
+
+tf<-function(w,D)
+{
+  h<-c()
+  f<-c()
+  for (i in (1:length(D)))
+  {
+    h[i]<-search_word(w,D[i])
+  }
+  H<-max(h)
+  for (i in (1:length(D)))
+  {
+    f[i]<-0.5+((0.5*h[i])/H)
+  }
+  return(f)
+}
+
+
+# idf function returns 'idf value' of a word 'w' in the document 'D'. This function requieres function: search_word
+idf<-function(w,D)
+{
+  N<-length(D)
+  h<-c()
+  for (i in (1:length(D)))
+  {
+    h[i]<-search_word(w,D[i])
+  }
+  m<-sum(h>0)
+  return(log10(N/m))
+}
+
+
+# idf function returns 'tf_idf vector' of a word 'w' in the document 'D'. This function requieres function: search_word,tf,idf,tf_idf
+
+
+tf_idf<-function(w,D)
+{
+  return(tf(w,D)*idf(w,D))
+}
+
+###########
+D<-str
+
+tf("you",D)
+idf("you",D)
+tf_idf("you",D)
+
+tf("shoes",D)
+idf("shoes",D)
+tf_idf("shoes",D)
+
+tf("know",D)
+idf("know",D)
+tf_idf("know",D)
+
+##############
+```
+
+Write a regular expression to segment the Dr. Seuss quote in to seperate sentences. 
+
+```{r}
+s<-"You have brains in your head. You have feet in your shoes. You can steer yourself in any direction you choose. You're on your own, and you know what you know. And you are the guy who'll decide where to go."
+str<-strsplit(s,"\\.")[[1]]
+s
+```
+
+
+* Write a regular expression to segment the Dr. Seuss quote in to seperate sentences. 
+
+```{r}
+seuss<-"You have brains in your head. You have feet in your shoes. You can steer yourself in any direction you choose. You're on your own, and you know what you know. And you are the guy who'll decide where to go."
+
+s_split<-strsplit(seuss,"\\.[ ]+") 
+s_split
+```
+
+
+* Write a regular expression to tokenize the Dr. Seuss quote.     
+```{r}
+s_token<-strsplit(seuss,"[ ]+") 
+s_token
+```
+
+
+* Create a frequency signature for the Dr. Seuss quote. Assume each sentence is a new documment. 
+
+here we created a freq_sign function which returns the frequency signature matrix of A and B in the text=str 
+
+```{r}
+freq_sign<-function(A,B,str)
+{
+  g1<-sum(grepl(A,str))
+  g2<-sum(grepl(B,str))
+  f<-sum(grepl(A,str)&grepl(B,str))
+  f1<-g1-f
+  f2<-g2-f
+  N<-length(str)
+  o11<-f
+  o12<-f1-f
+  o21<-f2-f1
+  o22<-N-f1-f2+f
+  return(c(o11,o12,o21,o22))
+}
+freq_sign("you","shoe",str)
+freq_sign("know","shoe",str)
+freq_sign("shoe","shoe",str)
+```
+
+
+
+
+
+

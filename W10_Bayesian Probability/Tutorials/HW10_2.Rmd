@@ -1,0 +1,143 @@
+---
+title: "HW10_2"
+output: html_document
+---
+## Assingment
+
+Answer the following questions:   
+####Q1) Can some form of Naive Bayes help in your research project?     
+
+
+ Yes, My research is about Actibvity Recognition (AR) using different classifiers including Baysian Classifier, and Baysian Classifier as a supervised learning can be used for AR problems.
+ 
+####Q2) If it can apply Naive Bayes to your research project? Does it help?     
+   
+   
+Here, I will apply Naieve Bayse method to classify the activity recognition dataset. 
+
+
+1) Data Prepration
+
+```{r results="hide"}
+
+dt1<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject1.log")
+summary(dt1)
+dim(dt1)
+
+dt2<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject2.log")
+summary(dt2)
+dim(dt2)
+
+dt3<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject3.log")
+summary(dt3)
+dim(dt3)
+
+dt4<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject4.log")
+summary(dt4)
+dim(dt4)
+
+dt5<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject5.log")
+summary(dt5)
+dim(dt5)
+
+dt6<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject6.log")
+summary(dt6)
+dim(dt6)
+
+dt7<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject7.log")
+summary(dt7)
+dim(dt7)
+
+dt8<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject8.log")
+summary(dt8)
+dim(dt8)
+
+dt9<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject9.log")
+summary(dt9)
+dim(dt9)
+
+dt10<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject10.log")
+summary(dt10)
+dim(dt10)
+
+all<-rbind(dt1,dt2,dt3,dt4,dt5,dt6,dt7,dt8,dt9,dt10)
+
+
+names(all)[24]<-"Y"
+names(all)
+
+all$Y<-as.factor(all$Y)
+summary(all)
+str(all)
+
+# So 'all' is the all the data we have. 23 attributes (column 1-23) and 1 label(column 24) with 13 classes. 
+
+```
+
+
+2) Normalizing data:
+
+```{r,results="hide"}
+
+library('som')
+all_norm<-normalize(all[,-24], byrow=FALSE)
+all_norm<-as.data.frame(all_norm)
+all_norm$Y<-all$Y
+head(all_norm)
+
+#'all_norm' is the 'all' data frame but normalized. 
+
+
+dt<-all_norm[sample(nrow(all_norm), nrow(all_norm)), ]
+
+#dt is the shuffled format of 'all_norm' 
+
+```
+
+
+
+3) Specifying Training and Test data
+
+
+```{r,eval=FALSE}
+
+ntr<-30000 #training
+nte<-1000 #test
+
+r<-0.8  #percentage of training data to be selected from rare activities. 
+
+```
+
+
+```{r,eval=FALSE}
+train1<-dt[1:ntr,]
+dim(train1)
+
+test1<-dt[(ntr+1):(ntr+nte),]
+dim(test1)
+```
+
+4) Applying Naieve Base Method
+
+###Naieve-Base
+
+```{r}
+library('e1071')
+model1 <- naiveBayes(Y~., data=train1)
+ypred_naivbs1<-predict(model1, test1[,-24])
+
+
+#Evaluation:
+
+true_rare(test1,ypred_naivbs1)
+true_zero(test1,ypred_naivbs1)
+```
+
+Naive Base has the strong assumption of independency between the feature. This in fact is not exactly true and even not so close. The reason is that some sensor's value impose some change in the other sensors and this will be against independency of attributes. Therefore we will expect a lower accuracy in the performance of the classifier. The results indicate that we have only 74% accuracy in the test set as opposed to 92% accuracy of Random forrest and 91% accuracy of SVM. 
+In summary, Baysian classifier could be very useful in problems with almost independent features or problems with many features that with other sort of conventional classifiers, The problem would be very time and computationally expensive like spam recgnition for emails. 
+
+
+
+    
+    
+    

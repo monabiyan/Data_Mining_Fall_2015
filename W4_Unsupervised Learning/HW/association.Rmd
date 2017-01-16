@@ -1,0 +1,122 @@
+## HW
+This homework assignment focuses on Association Rules. You will provide a written analysis based on the following information:
+
+1) First, select a transaction dataset from the Frequent Itemset Mining Dataset Repository at http://fimi.ua.ac.be/data/ or another transaction dataset of your choice from the Web. 
+
+2) Next, generate a set of 50 or so (non-redundant) rules.
+
+3)Finally answer the following questions: 
+
+Which rules make sense to you? Highlight the five best and five worst of your rule set. 
+
+How did you choose the level of support and confidence? 
+
+What is the lift and conviction of your best and worst rules? 
+
+Visualize your 50 association rules. Where do the best and worst end up in your plot? 
+
+Does the model make sense?
+
+```{r}
+install.packages("datasets");
+install.packages("arules");
+install.packages("arulesViz");
+install.packages("Matrix");
+require(arules)
+require(arulesViz)
+require(Matrix)
+
+```
+
+
+
+1) First, select a transaction dataset from the Frequent Itemset Mining Dataset Repository at http://fimi.ua.ac.be/data/ or another transaction dataset of your choice from the Web. 
+
+```{r}
+require(datasets)
+data(Groceries)
+str(Groceries)
+head(Groceries)
+itemFrequencyPlot(Groceries,topN=20,type="absolute")
+# Get the rules
+```
+
+2) Next, generate a set of 50 or so (non-redundant) rules.
+```{r}
+rules <- apriori(Groceries, parameter = list(supp = 0.001, conf = 0.8))
+ 
+# Show the top 5 rules, but only 2 digits
+options(digits=2)
+inspect(rules[1:50])
+```
+
+3)Finally answer the following questions: 
+
+Which rules make sense to you? Highlight the five best and five worst of your rule set. 
+
+```{r}
+
+rules<-sort(rules, by="confidence", decreasing=TRUE)
+
+inspect(rules[1:50])
+
+```
+
+Rule 1 makes very sense about For example alcoholic beverages like beer and wine are in the same family. 
+And we always needing milk for cereal and milk for breakfast like having jam and butter.There rules also corresponds to the highest lift too.  
+Here we can see them again.
+```{r}
+inspect(rules[1:5])
+```
+Last 5 rules also makes less sence. For instance, customers buying vegtables or friuts less likely tend to buy milk. Here is the five worst rules.
+
+```{r}
+
+inspect(rules[46:50])
+```
+
+
+How did you choose the level of support and confidence? 
+
+with itteration: By maintaining supp=0.001, I started with high amount of confidence and decrease it gradually until getting fair amount of sensible rules. 
+
+So what we have assigned is supp=0.001 and confidence 0.8.
+
+What is the lift and conviction of your best and worst rules? 
+
+for my best ruels the confidence and support is as follows:
+```{r}
+inspect(rules[1])
+```
+
+for my worst ruels the confidence and support is as follows:
+```{r}
+inspect(rules[50])
+```
+
+
+
+
+Visualize your 50 association rules. Where do the best and worst end up in your plot? 
+
+```{r}
+
+plot(rules[1:50])
+
+plot(rules[1:50], method="graph", control=list(type="items"))
+
+plot(rules[1:50], method="paracoord", control=list(reorder=TRUE))
+
+```
+In the Parrallel coordinates plot we see the best rules with the highest amount of confidence with the black and the worst with lowest color density starting with the vegtables ending to the milk. They are  kinda very different because the are targetting different products.
+
+Also the circles beautifully demonstrates the associations . As we said the best (liquer and wine and beers) are distant to the worst (vegtabels and milk) 
+
+
+Does the model make sense?
+
+Yes, up until rules 15, they really categorizing peoples need and the model predicts very well. like people buying liquirs will tend to but beers and people with ceareal will need milk. However when we go further down to rules 40 -50 the model seems to be less successful based on my own personal experience. 
+In general, the association model has been very successful in this data set. 
+
+
+

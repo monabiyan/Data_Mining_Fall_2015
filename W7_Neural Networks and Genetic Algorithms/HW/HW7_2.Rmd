@@ -1,0 +1,257 @@
+# Assingment
+
+* Use a genetic algorithm to search for a solution to the famous Travelling Salesman Problem in R. The same problem that we used in the simulated annealing lesson. 
+
+###################################
+Q1)  How does the genetic algorithm solution compare to the simulated annealing solution? 
+
+here is the genetic algorithm for traveller salesaman:
+
+
+```{r}
+library(GA)
+data("eurodist", package = "datasets")
+
+
+ D <- as.matrix(eurodist)
+ 
+ 
+
+tourLength <- function(tour, distMatrix) 
+{
+    tour <- c(tour, tour[1])
+    route <- embed(tour, 2)[,2:1]
+    sum(distMatrix[route])
+}
+
+tspFitness <- function(tour, ...) 1/tourLength(tour, ...)
+
+GA <- ga(type = "permutation", fitness = tspFitness, distMatrix = D,min = 1, max = attr(eurodist, "Size"), popSize = 50, maxiter = 5000,run = 500,pcrossover = 0.8, pmutation = 0.2)
+ 
+ 
+summary(GA)
+apply(GA@solution, 1, tourLength, D)
+ 
+mds <- cmdscale(eurodist)
+mds 
+x <- mds[, 1]
+y <- -mds[, 2]
+plot(x, y, type = "n", asp = 1, xlab = "", ylab = "")
+abline(h = pretty(range(x),10),v=pretty(range(y),10),col = "light gray")
+
+tour <- GA@solution[1, ]
+
+tour <- c(tour, tour[1])
+
+n <- length(tour)
+
+arrows(x[tour[-n]], y[tour[-n]], x[tour[-1]],y[tour[-1]],length = 0.15, angle = 25, col = "steelblue",lwd = 2)
+text(x, y, labels(eurodist), cex=0.8)
+   
+
+```
+
+As we see with the default pcrossover=0.8 and pmutation 0.2 we end up a rout with the distance=12893 . The path is starting with : 10-20-7-11-3-4-18 .... and ends up to: 19-1-21-17-6-10     
+
+
+
+Lets run simulated anealing once again to see the result.
+
+
+
+
+```{r}
+
+# Distance function
+distance <- function(sq) 
+  {  # Target function
+  sq2 <- embed(sq, 2)
+  return(as.numeric(sum(CityDistMatx[cbind(sq2[,2],sq2[,1])])))
+ }
+
+
+# Generate new candidates
+GenSeq <- function(sq)
+{  # Generate new candidate sequence
+  idx <- seq(2, NROW(CityDistMatx)-1, by=1)
+  ChangePoints <- sample(idx, size=2, replace=FALSE)
+  tmp <- sq[ChangePoints[1]]
+  sq[ChangePoints[1]] <- sq[ChangePoints[2]]
+  sq[ChangePoints[2]] <- tmp
+  return(as.numeric(sq))
+}
+
+
+
+CityDistMatx <- as.matrix(eurodist)
+CityDistMatx
+
+cities<-labels(eurodist)
+cities
+
+initial.tour <- c(1,2:NROW(CityDistMatx),1)  
+# Initial sequence
+initial.tour
+initial.d<-distance(initial.tour)
+initial.d
+for(i in 1:length(initial.tour))
+{
+  print(cities[initial.tour[i]])  
+}  
+set.seed(333) # chosen to get a good soln relatively quickly
+
+#  box-constrained optimization and simulated annealing
+# method = "SANN" performs simulated annealing
+# Method "SANN" is by default a variant of simulated annealing given in Belisle (1992)
+res <- optim(initial.tour, distance, GenSeq, method = "SANN",
+control = list(maxit = 30000, temp = 2000,trace=TRUE,REPORT = 500))
+
+res  # Near optimum distance around 12842
+final.tour<-res$par
+final.tour
+final.d<-distance(final.tour)
+final.d
+initial.d
+final.d/initial.d
+
+
+cities.xy <- cmdscale(eurodist)
+cities.xy
+for(i in 1:length(final.tour))
+{
+  print(cities[final.tour[i]])  
+}  
+rx <- range(x <- cities.xy[,1])
+ry <- range(y <- -cities.xy[,2])
+rx
+ry
+x
+y
+initial.tour
+## remove last element to draw arrows from point to point
+s <-head(initial.tour, -1)
+s
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="initial solution of traveling salesman problem")
+arrows(x[s], y[s], x[s+1], y[s+1], col="green")
+text(x, y, labels(cities), cex=0.8)
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="initial solution of traveling salesman problem")
+arrows(x[s], y[s], x[s+1], y[s+1], col="green")
+text(x, y, labels(cities), cex=0.8)
+text(x, y, labels(eurodist), cex=0.8)
+final.tour
+## draw lines from point to point
+s <-head(final.tour, -1)
+s
+df = data.frame(x[s],y[s])
+df
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="optimized simulated annealing traveling salesman problem")
+lines(df$x, df$y, col="red")
+text(x, y, labels(cities), cex=0.8)
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="optimized simulated annealing traveling salesman problem")
+lines(df$x, df$y, col="red")
+text(x, y, labels(cities), cex=0.8)
+text(x, y, labels(eurodist), cex=0.8)
+```
+
+Here after 30000 iteration we end up the path length=12907
+As we see, we have slighty better result using genetic algorithm optimization. 
+I believe since simulated anealing is converging, increasing the maxitereation might end up to better solution. The point here is that both techniques are fast and leads to a very close and great solution. 
+
+
+############################################################
+
+Q2)  How does the crossover probability effect the genetic algorithm solution?  
+
+Now lets play with the crossover probability.
+We write a function to return the distance of the resutatant path for the given crossover 
+probability. 
+and finally plot the distance with respect to the crossovers.
+
+
+
+
+```{r}
+
+final_dist<-function (crossover)
+{
+  data("eurodist", package = "datasets")
+
+
+ D <- as.matrix(eurodist)
+ 
+
+
+tspFitness <- function(tour, ...) 1/tourLength(tour, ...)
+
+GA <- ga(type = "permutation", fitness = tspFitness, distMatrix = D,min = 1, max = attr(eurodist, "Size"), popSize = 50, maxiter = 5000,run = 500,pcrossover = crossover, pmutation = 0.2)
+ 
+ 
+summary(GA)
+return(apply(GA@solution, 1, tourLength, D)[1])
+
+
+}
+j=1
+for (i in c(seq(0.1, 1, 0.02)))
+{
+  x[j]=i;
+  y[j]=final_dist(i)
+  j=j+1
+  print (j)
+}
+plot(x,y)
+```
+
+The plot indicates us that mostly higher crossover around 0.7 to 1 is a decent value, however, lower crossover values has tendency to worsen the result.
+
+
+
+####################################################
+
+Q3)   How does the mutation probability effect the genetic algorithm solution?     
+
+
+Here, the same approach is utilized by writing a distance function and a loop over the 
+range of 
+```{r}
+final_dist2<-function (mutation)
+{
+  data("eurodist", package = "datasets")
+
+
+ D <- as.matrix(eurodist)
+ 
+
+
+tspFitness <- function(tour, ...) 1/tourLength(tour, ...)
+
+GA <- ga(type = "permutation", fitness = tspFitness, distMatrix = D,min = 1, max = attr(eurodist, "Size"), popSize = 50, maxiter = 5000,run = 500,pcrossover = 0.8, pmutation = mutation)
+ 
+ 
+summary(GA)
+return(apply(GA@solution, 1, tourLength, D)[1])
+
+
+}
+j=1
+for (i in c(seq(0.0, 1, 0.02)))
+{
+  x[j]=i;
+  y[j]=final_dist2(i)
+  j=j+1
+  print (j)
+}
+plot(x,y)
+
+```
+
+The result indicates that mutation value is mostly providing better solution in the 
+range of 0.1 to 0.4 . However, increasing mutation like 0.6 to 1, will likely decreases the 
+performance of the algorithm.
+
+
+
+
+
+
+

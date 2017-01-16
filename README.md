@@ -1,0 +1,1 @@
+This is Introduction to Data Mining and Machine Learning class at Fall 2015.

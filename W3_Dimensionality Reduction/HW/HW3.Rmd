@@ -1,0 +1,153 @@
+---
+title: "Homework 3"
+author: "Mohsen Nabian"
+date: "10/5/2015"
+output: html_document
+---
+
+#HW3 : 
+
+.	Download the compressed data from the U.S. Bureau of Labor Statistics http://www.bls.gov/ @ http://www.bls.gov/cew/data/files/2014/csv/2014_annual_singlefile.zip, and extract the .csv file.
+
+.	Run Principal Components Analysis on the BLS data and answer the following questions. (You can use any PCA function you wish, i.e. princomp(), prcomp(), principal() or by hand.)
+
+##Questions:
+
+1) What proportion of the total variation in the data is explained by each of the principal components?
+
+2) What happens when you plot a screeplot?
+
+3) Based on the variation explained for each of these components, which, if any, components would you use? Why?
+
+4) Is there evidence of clustering in the data by creating biplots of the each of the components plotted against one another? Why or why not?
+
+5) Do any of the biplots reveal any interesting structure? 
+
+6) How many pcs are required to explain 75% of the variance in the data?
+
+
+##Solution
+
+##1) Storing data
+
+```{r}
+library(ggplot2)
+library(reshape2)
+
+df0<-read.csv(file="C:/Users/nabian.m/Desktop/2014.annual.small.csv",header=TRUE)
+#,na.strings=c("NA","N","")
+
+head(df0)
+dim(df0)
+str(df0)
+```
+
+##2) Cleaning and subsetting data: 
+
+#### Now lets clean the data : 
+  ####We have 38 attributes. among those, we have 6 attributes with mode factor and 2 numeric attribute which have 1 constant values.
+inorder to do dimensionality reduction we need to work only with numerics as well as  non constant attributes. 
+So in overal, these 8 columns are removed and saved in df1: 
+
+```{r}
+df1<-df0
+df1$area_fips<-NULL
+df1$industry_code<-NULL
+df1$size_code<-NULL
+df1$year<-NULL
+df1$qtr<-NULL
+df1$disclosure_code<-NULL
+df1$lq_disclosure_code<-NULL
+df1$oty_disclosure_code<-NULL
+df1<-na.omit(df1)
+dim(df1)
+str(df1)
+```
+
+
+##3) Running principal component analysis: 
+```{r}
+df1.fit.A<-princomp(df1,cor=TRUE)
+summary(df1.fit.A)
+```
+
+princomp does not show the coefficients of the original axis for each principal component.Therfore, I will use prcomp(). We expect the same result. We call the second result as df1.fit.B.
+
+with the summary() and print() we can see the variation parameters. 
+```{r}
+df1.fit.B<-prcomp(df1,retx=TRUE,center=TRUE,scale=TRUE)
+summary(df1.fit.B)
+print(df1.fit.B)
+```
+
+
+
+###1) What proportion of the total variation in the data is explained by each of the principal components?
+
+here we normalize the variations with respect to the first PC1 variation. 
+```{r}
+barplot(df1.fit.B$sdev/df1.fit.B$sdev[1])
+
+```
+
+
+###2)  What happens when you plot a screeplot?
+
+here is screeplot. 
+```{r}
+screeplot(df1.fit.B,npcs=20)
+```
+
+
+
+
+
+
+###3) Based on the variation explained for each of these components, which, if any, components would you use? Why?
+
+By taking the summary and noticing the culmulative proportions:
+```{r}
+summary(df1.fit.B)
+```
+we will see that until PC15, we will be covering  96% of the variations. So we will use these 15 variables instead of the 30 original variables. As a result, our data set can  become half in size.
+
+
+
+
+###4) Is there evidence of clustering in the data by creating biplots of  each of the components plotted against one another? Why or why not?
+
+```{r}
+biplot(df1.fit.B)
+```
+As we can see in the biplot, we are interestingly able to see some different clusters in the data. One in the middle which contains most of the data and some other data points far from the core which makes the clusters. Since the plot is very messy, counting how many clusters is not easy, however, we can definietly observe the existance of several clusters underlying the data. 
+
+
+
+
+
+###5) Do any of the biplots reveal any interesting structure? 
+
+Yes, the existance of some clustering is inetersing. Most of the data are near (0,0) in the PC1 PC2 coordinates. there are some other clusters in the higher value of pc1 (around 0.5) and some other clusters in higher value of pc2. 
+
+Moreover, we see a large vaiation of data value along the PC1 especially to the right (higher value of PC1)
+
+
+
+
+
+###6) How many pcs are required to explain 75% of the variance in the data?
+
+Again, by looking at the summary of the data, we can find the culmulative proportaion of the PCis:
+```{r}
+summary(df1.fit.B)
+```
+As we can see until PC7, we will cover 75% of the variations in the data. 
+
+
+
+
+
+
+
+
+

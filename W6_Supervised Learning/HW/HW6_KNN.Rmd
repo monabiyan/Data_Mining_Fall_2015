@@ -1,0 +1,184 @@
+
+
+#HW6.1
+
+* Go to the [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/ml/) and find a dataset for supervised classification. Every student MUST use a different dataset so you MUST get approved for which you can going to use. This can be the same dataset you used for the unsupervised clustering as long as the data has some labeled data.  
+
+```{r}
+library(class)
+
+data_address<-"http://archive.ics.uci.edu/ml/machine-learning-databases/00292/Wholesale%20customers%20data.csv"
+data0<-read.csv(file=data_address)
+head(data0)
+summary(data0)
+
+#Randomly Shuffling Data
+set.seed(12345)
+shuff<-runif(nrow(data0))
+data1<-data0[order(shuff),]
+#####
+
+#Scaling data
+data2<-as.data.frame(lapply(data1[,-1], scale))
+head(data2)
+#####
+
+# Constructing Training and Test Data
+0.2*nrow(data1)
+X.training<-data2[1:360,]
+Y.training<-data1[1:360,1]
+X.test<-data2[361:nrow(data1),]
+Y.test<-data1[361:nrow(data1),1]
+table(Y.training)
+table(Y.test)
+#####
+```
+
+
+
+
+
+* Classify your data using k-Nearest Neighbors. Answer the following questions:
+
+```{r}
+###KNN
+
+k<-5
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+
+#8 points false prediction
+
+```
+
+
+*Does the k for kNN make a difference? Try for a range of values of k.
+  
+```{r}
+## Comparing KNN results with different K value.
+
+k<-1
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+#8 points false prediction
+
+
+k<-2
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+#9 points false prediction
+
+k<-3
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+#7 points false prediction
+
+k<-4
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+#6 points false prediction
+
+
+k<-5
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+#8 points false prediction
+
+k<-6
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+#8 points false prediction
+
+k<-7
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+#8 points false prediction
+
+k<-8
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+#8 points false prediction
+
+k<-9
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+#7 points false prediction
+
+k<-10
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+#7 points false prediction
+
+k<-20
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+#8 points false prediction
+
+k<-40
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+#8 points false prediction
+
+k<-100
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+#13 points false prediction
+
+
+```
+So as we see, the KNN accuracy increases by increasing k from 1 to 4 and the accuracy slightly decreases by increasing k from 5 to 100. SO there would be an optimum of k for maximum accuracy.     
+    
+    
+    
+*Does scaling, normalization or leaving the data unscaled make a difference for kNN?
+```{r}
+
+X.training<-data1[1:360,]
+Y.training<-data1[1:360,1]
+X.test<-data1[361:nrow(data1),]
+Y.test<-data1[361:nrow(data1),1]
+table(Y.training)
+table(Y.test)
+
+k<-5
+knn.m1<-knn(train = X.training,test = X.test,Y.training,k)
+knn.m1
+cm1<-table(Y.test,knn.m1)
+cm1
+#9 points false prediction
+```
+
+
+So as we see in the results, we ended up slightly less accurate classification.
+Which means scaling before applying kmeans could be helpful and would improve the accuracy 
+of prediction for the test set.
+   
+    

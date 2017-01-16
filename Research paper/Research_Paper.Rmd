@@ -1,0 +1,590 @@
+---
+title: "Research_paper"
+output: html_document
+---
+
+##Abstract
+
+
+Activity Recognition (AR) algorithms are machine learning algorithms developed for cellphones and smart watches applications to recognize real-time human activities such as walking, standing, siting, running and etc...
+This paper applied several conventional classification models on the AR dataset provided by UCI to generate reliable algorithms for real-time Activity recognition.However, These data are highly unbalanced toward one activity (Standing Still) and the motivation is to understand how accuaratly perform each model and whether balancing the training data by sampling will be helpful or not. Finally, the results will be compared with the available AR algorithms such as AT,FE and FE-AT. 
+
+
+##Author Key Words
+Activity Recognition; Attribute-based Learning; Insufficient Data Problem; Imbalanced Data Problem.
+
+
+#INTRODUCTION
+
+Wearable-based activity recognition (AR) systems are typically built to recognize a predefined set of common activities such as sitting, walking, and running [11]. However, to adapt to the needs of individuals and application scenarios, these AR systems often need to be extended to recognize new ac-tivities of interest. For example, people working out at a gym need the AR system to correctly distinguish between individual types of exercises, whereas applications helping users quit smoking depend on the system’s ability to recognize smoking activities.
+
+Amount of Data available for the new activities (like biking) are significantly lower than the common activities such as "Standing still". The reasons are as follows:  Activities like Standing still are : 1)Very common and are the dominant daily activity of a person 2) Easy to generate data in this position 3) Were among the activities that was measured in the begining of this idea, however, other activities were less under attention before. 
+Training machine learning models over these unbalanced data will cause the inaccurate predication of the test data. For example, since the training data for 'standing still' are 10 times more than the 'biking' data in our dataset, the machine learning model will likely predict the real 'biking' activity as 'standing still' activity.   
+
+This paper will propose nonlinear models that are almost as accurate as the state-of-art AR models such as FE-AT. These models were obtained by reduction of the unbalanced data and feeding more uniform dataset. For exmple, instead of having training data 90% allocated to standing still, we give 70% standing still data thus we have increased the role of other rare activities in our model.It is shown that, this method will improve the overal accuracy of the models comparing to the models obtained from huge but unbiased training data. 
+
+#The Problem
+
+Unbiased dataset will result in less accurate and biased prediction models. Activity Recognition datasets are mostly biased towaed the activities that are easy to measure as well as most daily common such as Standing Still. The main motivation of this paper is to obtain less biased more accurated learned models for AR.
+
+The idea of this paper are as follwings:
+ 1) study the robustness of different machine learning algorithms against the unbiased AR training data.
+ 2) Modification of the training set based on the performance of the classifiers: The amount ratio of the data for the dominant activity (satnding still) will be adjusted to minimize the defined cost function. For instance, if a training set contains 70% of standing still data as opposed to 90%, will be more responsive and predictive for both 'staning still' activity as well as other activities.
+ 3) The proposed learning models will be compared in terms of accuracy to the current AR algorithms 
+
+
+#Data Description:
+
+The dataset comprises body motion and vital signs recordings for ten volunteers of diverse profile while performing several physical activities. Sensors placed on the subject's chest, right wrist and left ankle are used to measure the motion experienced by diverse body parts, namely, acceleration, rate of turn and magnetic field orientation. The sensor positioned on the chest also provides 2-lead ECG measurements, which can be potentially used for basic heart monitoring, checking for various arrhythmias or looking at the effects of exercise on the ECG. 
+
+The meaning of each attribute is detailed below:
+Column 1: acceleration from the chest sensor (X axis) 
+Column 2: acceleration from the chest sensor (Y axis) 
+Column 3: acceleration from the chest sensor (Z axis) 
+Column 4: electrocardiogram signal (lead 1) 
+Column 5: electrocardiogram signal (lead 2) 
+Column 6: acceleration from the left-ankle sensor (X axis) 
+Column 7: acceleration from the left-ankle sensor (Y axis) 
+Column 8: acceleration from the left-ankle sensor (Z axis) 
+Column 9: gyro from the left-ankle sensor (X axis) 
+Column 10: gyro from the left-ankle sensor (Y axis) 
+Column 11: gyro from the left-ankle sensor (Z axis) 
+Column 13: magnetometer from the left-ankle sensor (X axis) 
+Column 13: magnetometer from the left-ankle sensor (Y axis) 
+Column 14: magnetometer from the left-ankle sensor (Z axis) 
+Column 15: acceleration from the right-lower-arm sensor (X axis) 
+Column 16: acceleration from the right-lower-arm sensor (Y axis) 
+Column 17: acceleration from the right-lower-arm sensor (Z axis) 
+Column 18: gyro from the right-lower-arm sensor (X axis) 
+Column 19: gyro from the right-lower-arm sensor (Y axis) 
+Column 20: gyro from the right-lower-arm sensor (Z axis) 
+Column 21: magnetometer from the right-lower-arm sensor (X axis) 
+Column 22: magnetometer from the right-lower-arm sensor (Y axis) 
+Column 23: magnetometer from the right-lower-arm sensor (Z axis) 
+Column 24: Label (0 for the null class) 
+
+The activity set is listed in the following: 
+L1: Standing still (1 min) 
+L2: Sitting and relaxing (1 min) 
+L3: Lying down (1 min) 
+L4: Walking (1 min) 
+L5: Climbing stairs (1 min) 
+L6: Waist bends forward (20x) 
+L7: Frontal elevation of arms (20x) 
+L8: Knees bending (crouching) (20x) 
+L9: Cycling (1 min) 
+L10: Jogging (1 min) 
+L11: Running (1 min) 
+L12: Jump front & back (20x) 
+NOTE: In brackets are the number of repetitions (Nx) or the duration of the exercises (min). 
+
+##Data Prepration
+
+```{r results="hide"}
+
+dt1<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject1.log")
+summary(dt1)
+dim(dt1)
+
+dt2<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject2.log")
+summary(dt2)
+dim(dt2)
+
+dt3<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject3.log")
+summary(dt3)
+dim(dt3)
+
+dt4<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject4.log")
+summary(dt4)
+dim(dt4)
+
+dt5<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject5.log")
+summary(dt5)
+dim(dt5)
+
+dt6<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject6.log")
+summary(dt6)
+dim(dt6)
+
+dt7<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject7.log")
+summary(dt7)
+dim(dt7)
+
+dt8<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject8.log")
+summary(dt8)
+dim(dt8)
+
+dt9<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject9.log")
+summary(dt9)
+dim(dt9)
+
+dt10<-read.table("/Users/mohsennabian/Desktop/MHEALTHDATASET/mHealth_subject10.log")
+summary(dt10)
+dim(dt10)
+
+all<-rbind(dt1,dt2,dt3,dt4,dt5,dt6,dt7,dt8,dt9,dt10)
+
+
+names(all)[24]<-"Y"
+names(all)
+
+all$Y<-as.factor(all$Y)
+summary(all)
+str(all)
+
+# So 'all' is the all the data we have. 23 attributes (column 1-23) and 1 label(column 24) with 13 classes. 
+
+```
+
+
+normalizing data:
+
+```{r,results="hide"}
+
+library('som')
+all_norm<-normalize(all[,-24], byrow=FALSE)
+all_norm<-as.data.frame(all_norm)
+all_norm$Y<-all$Y
+head(all_norm)
+
+#'all_norm' is the 'all' data frame but normalized. 
+
+
+dt<-all_norm[sample(nrow(all_norm), nrow(all_norm)), ]
+
+#dt is the shuffled format of 'all_norm' 
+
+```
+
+
+##Train and Test data
+
+```{r,eval=FALSE}
+
+ntr<-30000 #training
+nte<-1000 #test
+
+r<-0.7  #percentage of training data to be selected from rare activities. 
+
+```
+##Method I) 
+
+```{r,eval=FALSE}
+train1<-dt[1:ntr,]
+dim(train1)
+
+test1<-dt[(ntr+1):(ntr+nte),]
+dim(test1)
+```
+
+Method II)
+
+```{r,eval=FALSE}
+dt_rare<-dt[(dt[,24]!=0),]
+dt_zero<-dt[(dt[,24]==0),]
+dim(dt_rare)
+dim(dt_zero)
+
+train2<-rbind(dt_rare[1:(r*ntr),],dt_zero[1:((1-r)*ntr),])
+test2<-rbind(dt_rare[(r*ntr+1):(r*ntr+0.9*nte),],dt_zero[((1-r)*ntr+1):((1-r)*ntr+0.1*nte),])
+
+```
+
+
+The existing training data is highly balanced toward 'standing still' activity composing 70% of all the data alone. 25% of the data composed almost uniformly of 12 other activities. 5% of the data is almost uniformly disributed among the 12 remaining activities. Therefore, the data is highly nonuniform. 
+
+data explanatory:
+
+```{r,eval="FALSE"}
+a=c()
+for (i in 1:(ncol(dt)-1))
+{
+a[i]<-sum(dt$Y==i)/nrow(dt)
+}
+
+# a is the frequency vector of each label from a[1] to a[12]
+
+b<-sum(dt$Y==0)/nrow(dt)
+
+#b is the frequency of label 0
+
+plot(a)
+cc<-c(b,a)
+#cc is a frequency label of all Y classes  cc[1]..cc[13]
+barplot(cc,names.arg=c(1:24),xlab="Activity Type",ylab="Probability",main="Probability Distribution of the Activities in the Original Dataset",ylim=c(0,1),col=c("green"))
+
+```
+
+
+In order to obtain more clear understanding of the data, 'principal component analysis' has been done on the data. 
+
+In the following figure, the first two principal components of the data are demosntrated:
+
+
+##PCA analysis
+```{r,echo=FALSE}
+library(stats)
+
+summary(pc.cr <- princomp(train2[,-24]))
+library(lattice)         #We can use pc.cr$score to map to pca coordinates
+pc.cr$scores
+pca_map<-cbind(pc.cr$scores,train2[,24])
+pca_map<-as.data.frame(pca_map)
+
+
+colnames(pca_map)[24] <- "Activity_Type"
+pca_map[,24]<-as.factor(pca_map[,24])
+
+library(ggplot2)
+q<-ggplot(pca_map,aes(x=Comp.1,y=Comp.2))+geom_point() 
+q<-q+aes(group=Activity_Type,color=Activity_Type)+labs(title="First two Principal Components", y="PCA2", x="PCA1")
+q
+
+```
+
+This figure indicates how the 'standing still' activity is accimulated around the center of the plane of the first two principal components. Other principal components will distinguish other activities more clearly.
+
+
+Calssification:
+In the 1st method, the unbaiesd data is used as the training set for the following classification models. 
+
+
+
+##Train and Test data
+
+```{r,eval=FALSE}
+
+ntr<-30000 #training
+nte<-1000 #test
+
+r<-0.7  #percentage of training data to be selected from rare activities. 
+
+```
+##Method I) 
+
+```{r,eval=FALSE}
+train1<-dt[1:ntr,]
+dim(train1)
+
+test1<-dt[(ntr+1):(ntr+nte),]
+dim(test1)
+```
+
+Method II)
+
+```{r,eval=FALSE}
+dt_rare<-dt[(dt[,24]!=0),]
+dt_zero<-dt[(dt[,24]==0),]
+dim(dt_rare)
+dim(dt_zero)
+
+train2<-rbind(dt_rare[1:(r*ntr),],dt_zero[1:((1-r)*ntr),])
+test2<-rbind(dt_rare[(r*ntr+1):(r*ntr+0.9*nte),],dt_zero[((1-r)*ntr+1):((1-r)*ntr+0.1*nte),])
+
+```
+
+
+
+Some evaluation functions:
+```{r,eval=FALSE}
+true_rare<-function(test,ypred)
+{
+  r<-length(test$Y)-sum(test$Y==0)
+  r
+  a<-sum((ypred==test$Y) & (test$Y!=0) )/r
+  return(a)
+}
+
+true_zero<-function(test,ypred)
+{
+  r<-sum(test$Y==0)
+  a<-sum((ypred==test$Y) & (test$Y==0) )/r
+  return(a)
+}
+true_all<-function(test,ypred)
+{
+  a<-sum(ypred==test$Y)/length(test$Y)
+  return(a)
+}
+
+```
+
+
+
+###SVM
+```{r, eval=FALSE}
+library(e1071) 
+svm.fit1<- svm(Y~.,data=train1, kernal="polynomial",cost=100,scale=TRUE)
+ypred_svm1=predict(svm.fit1,test1)
+
+svm.fit2<- svm(Y~.,data=train2, kernal="polynomial",cost=100,scale=TRUE)
+ypred_svm2=predict(svm.fit2,test2)
+
+
+#table(pred=ypred_svm,truth=test1$Y)
+a<-c()
+b<-c()
+e<-c()
+m<-c()
+n<-c()
+x<-c()
+
+a[1]<-true_rare(test1,ypred_svm1)
+b[1]<-true_zero(test1,ypred_svm1)
+e[1]<-true_all(test1,ypred_svm1)
+
+
+m[1]<-true_rare(test2,ypred_svm2)
+n[1]<-true_zero(test2,ypred_svm2)
+x[1]<-true_all(test2,ypred_svm2)
+
+```
+
+###KNN
+```{r,eval=FALSE}
+library(class)
+ypred_knn1<-knn(train1[,-24], test1[,-24], train1[,24], k = 13, prob=FALSE)
+ypred_knn2<-knn(train2[,-24], test2[,-24], train2[,24], k = 13, prob=FALSE)
+
+#Evaluation:
+
+a[2]<-true_rare(test1,ypred_knn1)
+b[2]<-true_zero(test1,ypred_knn1)
+e[2]<-true_all(test1,ypred_knn1)
+
+m[2]<-true_rare(test2,ypred_knn2)
+n[2]<-true_zero(test2,ypred_knn2)
+x[2]<-true_all(test2,ypred_knn2)
+
+```
+
+###Artificial Neural Network
+
+```{r,eval=FALSE}
+library("nnet")
+#Changing Y label to binary labels:
+ideal1<-as.data.frame(model.matrix(~0+train1[,24]))  #or ideal <- class.ind(train[,24])
+seedsANN = nnet(train1[,-24],ideal1, size=20, softmax=TRUE,maxit = 200)
+ypred_nnet1<-predict(seedsANN, test1[,-24],type="class")
+#ypred_nnet1 is in the string format, need to be modified:
+library(stringr)
+ypred_nnet1<-as.numeric(str_extract(ypred_nnet1,"[0-9][0-9]*$"))
+
+
+
+ideal2<-as.data.frame(model.matrix(~0+train2[,24]))  #or ideal <- class.ind(train[,24])
+seedsANN = nnet(train2[,-24],ideal2, size=20, softmax=TRUE,,maxit = 200)
+ypred_nnet2<-predict(seedsANN, test2[,-24], type="class")
+ypred_nnet2<-as.numeric(str_extract(ypred_nnet2,"[0-9][0-9]*$"))
+
+
+#Evaluation:
+
+a[3]<-true_rare(test1,ypred_nnet1)
+b[3]<-true_zero(test1,ypred_nnet1)
+e[3]<-true_all(test1,ypred_nnet1)
+
+
+m[3]<-true_rare(test2,ypred_nnet2)
+n[3]<-true_zero(test2,ypred_nnet2)
+x[3]<-true_all(test2,ypred_knn2)
+```
+
+
+### Decision Tree
+
+```{r,eval=FALSE}
+library('C50')
+
+set.seed(12345)
+model1 <- C5.0(train1[,-24], train1[,24])
+ypred_dt1<-predict(model1, test1[,-24])
+
+model2 <- C5.0(train2[,-24], train2[,24])
+ypred_dt2<-predict(model2, test2[,-24])
+
+
+
+#Evaluation:
+
+a[4]<-true_rare(test1,ypred_dt1)
+b[4]<-true_zero(test1,ypred_dt1)
+e[4]<-true_all(test1,ypred_dt1)
+
+m[4]<-true_rare(test2,ypred_dt2)
+n[4]<-true_zero(test2,ypred_dt2)
+x[4]<-true_all(test2,ypred_dt2)
+
+#table(pred=ypred_dt1,truth=test1[,24])
+#agreement_dt <- ypred_dt1== test1[,24]
+#table(agreement_dt)
+
+##Ploting the decision Tree: 
+#plot(model, uniform=T, main="Classification Tree for Mushrooms Types")
+
+```
+
+
+###random forest
+
+```{r,eval=FALSE}
+library(randomForest)
+fit1<- randomForest(Y~., data=train1)
+ypred_rf1<- predict(fit1, test1[,-24], type="class")
+
+fit2<- randomForest(Y~., data=train2)
+ypred_rf2<- predict(fit2, test2[,-24], type="class")
+
+#Evaluation:
+
+a[5]<-true_rare(test1,ypred_rf1)
+b[5]<-true_zero(test1,ypred_rf1)
+e[5]<-true_all(test1,ypred_rf1)
+
+m[5]<-true_rare(test2,ypred_rf2)
+n[5]<-true_zero(test2,ypred_rf2)
+x[5]<-true_all(test2,ypred_rf2)
+
+```
+
+
+###Naieve-Base
+
+```{r,eval=FALSE}
+library('e1071')
+model1 <- naiveBayes(Y~., data=train1)
+ypred_naivbs1<-predict(model1, test1[,-24])
+
+model2<- naiveBayes(Y~., data=train2)
+ypred_naivbs2<-predict(model1, test2[,-24])
+
+
+#Evaluation:
+
+a[6]<-true_rare(test1,ypred_naivbs1)
+b[6]<-true_zero(test1,ypred_naivbs1)
+e[6]<-true_all(test1,ypred_naivbs1)
+
+
+m[6]<-true_rare(test2,ypred_naivbs2)
+n[6]<-true_zero(test2,ypred_naivbs2)
+x[6]<-true_all(test2,ypred_naivbs2)
+```
+
+
+###Bagging 
+```{r,eval=FALSE}
+# load the package
+library(ipred)
+
+fit1 <- bagging(Y~., data=train1)
+ypred_bg1<- predict(fit1, test1[,-24], type="class")
+
+fit2 <- bagging(Y~., data=train2)
+ypred_bg2<- predict(fit2, test2[,-24], type="class")
+
+
+#Evaluation:
+
+a[7]<-true_rare(test1,ypred_bg1)
+b[7]<-true_zero(test1,ypred_bg1)
+e[7]<-true_all(test1,ypred_bg1)
+
+m[7]<-true_rare(test2,ypred_bg2)
+n[7]<-true_zero(test2,ypred_bg2)
+x[7]<-true_all(test2,ypred_bg2)
+```
+
+
+
+###Bossting
+
+```{r,eval=FALSE}
+library('adabag')
+model1 <- boosting(Y~., data=train1)
+ypred_boost1<-predict(model1, test1[,-24])
+
+model2<- boosting(Y~., data=train2)
+ypred_boost2<-predict(model1, test2[,-24])
+
+
+#Evaluation:
+
+a[8]<-true_rare(test1,ypred_boost1)
+b[8]<-true_zero(test1,ypred_boost1)
+e[8]<-true_all(test1,ypred_boost1)
+
+m[8]<-true_rare(test2,ypred_boost2)
+n[8]<-true_zero(test2,ypred_boost2)
+x[8]<-true_all(test2,ypred_boost2)
+```
+
+In the following figure, it is shown that the prediction power of the classification methods are not acceptable comprating to the AR algorithm available. 
+
+```{r}
+
+barplot(a)
+barplot(b)
+barplot(m)
+barplot(n)
+
+```
+
+
+
+
+Prediction of the rare activities has been improved using the modifie dataset. This is due to the fact that higher portion of training data have been assigned to the learning algorithm. However, there is a significant decrease in the accuracy of the dominanat activity. This inaccuracy is specifically very important due to the fact that this activity is indeed occure most of the time. Therfore, it is quite important to modify the data with the knowledge of how we the accuracy of dominant activities would be affected.
+In the following algorithm, inacuracy in dominant activities will be penalized 10 times more than the rare activities. In fact, we have put a weight of 10 for the dominant activity and weight 1 for the rest. The goal is to minimize the penalty(weighted inaccuracy of labels of test data). 
+
+
+
+
+There is a question that what percentage of training data would be better to be selected from zero-labels.
+
+```{r}
+h<-c()
+cost<-c()
+ntr<-30000 #training
+nte<-1000 #test
+for (j in c(1:100))
+{
+  print(j)
+  h[j]<-0+j*0.01
+  r<-h[j]
+  
+  train_t<-rbind(dt_rare[1:(r*ntr),],dt_zero[1:((1-r)*ntr),])
+  test_t<-rbind(dt_rare[(r*ntr+1):(r*ntr+0.9*nte),],dt_zero[((1-r)*ntr+1):((1-r)*ntr+0.1*nte),])
+  
+  #svm.fit<- svm(Y~.,data=train_t, kernal="polynomial",cost=100,scale=TRUE)
+  #ypred_svm=predict(svm.fit,test_t)
+  ypred_knn<-knn(train_t[,-24], test_t[,-24], train_t[,24], k = 13, prob=FALSE)
+  cost[j]<-(0.2*(1-true_rare(test_t,ypred_knn))+0.8*(1-true_zero(test_t,ypred_knn)))
+  print(cost[j])
+}
+
+plot(h,cost,col="blue")
+lines(h,cost,col="red",lwd=10)
+result
+```
+
+This figure, demonstrates that there is an elbow shape increase starting around 0.7 . As a result chose r=0.7 as a reseanoble value. r=0.7 is selected based on the cost function modeled as :
+$$J=0.2*(False,Rare)+0.8*(False,Dominant)$$
+
+
+Related Works:
+
+
+```{r}
+
+mtd1<-cbind(a[1:6],b[1:6],e[1:6])
+mtd2<-cbind(m[1:6],n[1:6],x[1:6])
+
+barplot(cbind(t(mtd1),fe_AT)*100,beside=T,names.arg=c("SVM", "KNN", "ANN","DT","RF","NB","FE_AT"),xlab="Classification Method",ylab="Accuracy Percentage",main="Classifications Accuracy using Original Training Set (Method I)",ylim=c(0,100),cex.names=1, las=2,col=c("red","green","darkblue"),legend = c("Prediction of Rare Activities","Prediction of 'Standing Still'","Predication of All"), args.legend =list(x = 18, y=105, bty = "n"))
+
+#Now we plot the 2nd method and compare it to FE_AT
+
+fe_AT<-c(0.92,0.84,0)
+
+barplot(cbind(t(mtd2),fe_AT)*100,beside=T,names.arg=c("SVM", "KNN", "ANN","DT","RF","NB","FE_AT"),xlab="Classification Method",ylab="Accuracy Percentage",main="Classifications Accuracy using Modified Training Set (Method II)",ylim=c(0,100),cex.names=1, las=2,col=c("red","green","darkblue"),legend = c("Prediction of Rare Activities","Prediction of 'Standing Still'","Predication of All"),args.legend =list(x = 18, y=103, bty = "n"))
+
+```

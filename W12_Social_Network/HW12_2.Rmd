@@ -1,0 +1,254 @@
+---
+title: "HW12_2"
+output: html_document
+---
+
+Answer the following questions:   
+Q1)  Can some form of Social Network analysis help in your research project?    
+Social Network analysis can be a part of my research, however, the paper is focused on supervised classificattion learning. Thus, a comprehensive study on network analysis is not possible. 
+
+therefore, we used Michael Hahsler's network data to make somehow a comperhensove study to familiarize ourselfs with different aspects of social network analysis in R.
+
+```{r}
+set.seed(1234)
+
+library(igraph)
+source("http://michael.hahsler.net/SMU/ScientificCompR/code/map.R")
+```
+
+#Create a random graph
+```{r}
+g <-erdos.renyi.game(50, 3/50)
+summary(g)
+```
+#Plot graphs
+```{r}
+plot(g)
+```
+
+Plot with an externally created layout
+```{r}
+layout <-layout.fruchterman.reingold(g)
+plot(g, layout=layout)
+```
+
+
+Interactive plot
+
+```{r}
+tkplot(g)
+```
+
+Inspect vertex degree and use the degree for vertex size
+```{r}
+degree(g)
+
+
+
+hist(degree(g))
+
+plot(g, layout=layout, vertex.size=map(degree(g),c(1,20)))
+
+```
+
+
+Number of paths between vertex 1 and 2
+```{r}
+edge.disjoint.paths(g, 1, 2)
+```
+Betweenness centrality - number of geodesics (shortest paths) going through a vertex or an edge
+
+```{r}
+betweenness(g)
+
+edge.betweenness(g)
+
+plot(g, layout=layout,
+  vertex.size=map(betweenness(g),c(1,15)),
+  edge.width=map(edge.betweenness(g), c(1,10)))
+```
+
+Diameter of graph - Length of the longest geodesic path
+
+```{r}
+diameter(g)
+
+get.diameter(g)
+```
+
+Maximal independent vertex sets
+```{r}
+independence.number(g)
+
+col <- rep("blue",length(V(g)))
+col[maximal.independent.vertex.sets(g)[[1]]] <- "red"
+plot(g, layout=layout, vertex.color=col)
+```
+
+
+Find connected components
+
+
+```{r}
+
+cl <- clusters(g)
+cl
+
+plot(g, layout=layout, vertex.color=cl$membership+1L)
+
+
+
+```
+
+
+Get connected components
+```{r}
+dg <- decompose.graph(g)
+length(dg)
+
+plot(dg[[1]])
+```
+
+plot of chunk unnamed-chunk-12
+```{r}
+plot(dg[[2]])
+```
+
+
+plot of chunk unnamed-chunk-12
+
+Max-flow between vertices 1 and 2
+
+```{r}
+graph.maxflow(g, 1, 2)
+```
+
+Min cut (of the first connected component)
+```{r}
+graph.mincut(dg[[1]], value.only=FALSE)
+col <- rep("blue", length(V(dg[[1]])))
+col[graph.mincut(dg[[1]], value.only=FALSE)[["partition2"]]] <- "red"
+plot(dg[[1]], vertex.color=col)
+```
+
+plot of chunk unnamed-chunk-14
+
+Find neighborhood of vertices
+
+```{r}
+gn <- graph.neighborhood(g, order = 1)
+plot(gn[[1]])
+
+```
+
+
+plot of chunk unnamed-chunk-15
+```{r}
+plot(gn[[2]])
+
+```
+plot of chunk unnamed-chunk-15
+
+Find cliques
+
+```{r}
+mc <- maximal.cliques(g)
+length(mc)
+
+```
+
+click size
+
+```{r}
+sapply(mc, length)
+
+col <- rep("blue", length(V(g)))
+```
+plot the largest (last) click
+```{r}
+col[mc[[length(mc)]]] <- "red"
+
+plot(g, layout=layout, vertex.color=col)
+```
+plot of chunk unnamed-chunk-18
+Large graph (social networks)
+
+
+```{r}
+g <- barabasi.game(1000, power=1)
+layout <- layout.fruchterman.reingold(g)
+plot(g, layout=layout, vertex.size=2,
+  vertex.label=NA, edge.arrow.size=.2)
+```
+
+plot of chunk unnamed-chunk-19
+
+Page Rank
+
+```{r}
+pr <- page.rank(g)$vector
+plot(g, layout=layout, vertex.size=map(pr, c(1,20)),
+  vertex.label=NA, edge.arrow.size=.2)
+plot of chunk unnamed-chunk-20
+```
+
+Eigenvector centrality
+
+
+```{r}
+ec <- evcent(g)$vector
+plot(g, layout=layout, vertex.size=map(ec, c(1,20)), vertex.label=NA, edge.arrow.size=.2)
+```
+plot of chunk unnamed-chunk-21
+
+Kleinberg’s hub and authority scores
+
+```{r}
+auth <- authority.score(g)$vector
+hub <- hub.score(g)$vector
+plot(g, layout=layout, vertex.size=map(hub, c(1,5)), vertex.label=NA, edge.arrow.size=.2)
+
+```
+
+plot of chunk unnamed-chunk-22
+
+```{r}
+plot(g, layout=layout, vertex.size=map(auth, c(1,20)), vertex.label=NA, edge.arrow.size=.2)
+
+```
+
+plot of chunk unnamed-chunk-22
+
+Community detection (betweenness)
+
+```{r}
+eb <- edge.betweenness.community(g)
+```
+
+create 10 communities
+
+```{r}
+member <- community.to.membership(g, eb$merges,step=nrow(eb$merges)-10L+1L)
+plot(g,vertex.color= rainbow(10, .8, .8, alpha=.8)[member$membership+1L],
+  vertex.size=5, layout=layout,  vertex.label=NA,
+  edge.arrow.size=.2)
+```
+
+plot of chunk unnamed-chunk-24
+
+Random walk
+
+```{r}
+eb <- walktrap.community(g)
+```
+
+create 10 communities
+```{r}
+member <- community.to.membership(g, eb$merges,
+  step=nrow(eb$merges)-10L+1L)
+plot(g,
+  vertex.color= rainbow(10, .8, .8, alpha=.8)[member$membership+1L],
+  vertex.size=5, layout=layout,  vertex.label=NA,
+  edge.arrow.size=.2)
+```
+

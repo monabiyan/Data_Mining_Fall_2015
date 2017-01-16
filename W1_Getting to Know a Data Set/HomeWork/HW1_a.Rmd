@@ -1,0 +1,272 @@
+---
+title: "Homework 1_a"
+author: "Mohsen Nabian"
+date: "9/28/2015"
+output: html_document
+---
+
+## Homework Question 1
+
+_Probability distributions_
+
+* Replicate and plot the fat-tailed Cauchy distributions from https://en.wikipedia.org/wiki/Cauchy_distribution
+* Load the file M01_Lesson_02_Q1.csv
+* Answer the following questions for the data in each column:
+    * How is the data distributed?
+    * What are the summary statistics?
+    * Are there anomalies/outliers?
+    * Try to regenerate the data in each column.
+    * Plot your regenerated data versus the original data using a faceted graph. How does it compare? 
+
+
+
+```{r}
+# Drawing the Cauchy Distribution
+#install.packages('ggplot2')
+require(ggplot2)
+##############
+```
+
+
+
+
+```{r}
+cauchy<-data.frame(A=rcauchy(100000,0,0.5),B=rcauchy(100000,0,1),
+                   C=rcauchy(100000,0,2),D=rcauchy(100000,-2,1))
+
+require(reshape2)
+rnd <- melt(data=cauchy)    #Changing the form of data frame
+head(rnd)
+g<-ggplot(data=rnd)+ aes(x=value)+aes(group=variable)+aes(color=variable)
+g<-g+geom_density()
+g<-g+xlim(-5,5)+ylim(0,0.7)
+g<-g+labs(title="Wikipedia Cauchy Distributions", y="P(x)", x="x")
+g
+
+
+#####################################################
+```
+
+
+
+
+
+
+```{r}
+
+DATA<-read.csv("C:/Users/nabian.m/OneDrive/Fall 2015/intr. Data mining and Machine learning/Week1/HomeWork/M01_Lesson_02_Q1.csv",header=TRUE)
+head(DATA)
+```
+
+
+##Column A
+
+```{r}
+#Column A
+
+g0<-ggplot(data=DATA)
+g1<-g0+aes(x=A)+geom_density()
+g1
+vect<-DATA$A
+summary(vect)
+```
+
+
+based on the shape of the distribution and the fact that mean and median are very close, the distribution is very  similar to a gussian distribution.
+
+
+```{r}
+lowerq = quantile(vect)[2]
+upperq = quantile(vect)[4]
+innerq = upperq - lowerq #Or use IQR(data)
+threshold.upper = (innerq * 1.5) + upperq
+threshold.lower = lowerq - (innerq * 1.5)
+outlier<-sum((vect>threshold.upper))+sum((vect<threshold.lower))
+outlier
+##############################
+```
+
+So there is only 1 outlier here based on this definition that we coded.
+
+```{r}
+
+miu<-mean(DATA$A)
+sdd<-sd(DATA$A)
+my_A<-rnorm(length(DATA$A),miu,sdd)
+df<-data.frame(x=DATA$A,Type=as.factor('Real'))
+df<-rbind(df,data.frame(x=my_A,Type=as.factor('Predicted')))
+
+g0<-ggplot(data=df)+aes(x=x,color=Type)+geom_density()
+g0
+
+```
+
+
+##Column B
+```{r}
+#Column B
+
+g0<-ggplot(data=DATA)
+g2<-g0+aes(x=B)+geom_density()
+g2
+vect<-DATA$B
+summary(vect)
+```
+
+This is also close to the normal distribution due to the shape as well as the fact that median and mean are very close. However, a handful of outliers are visually detectable from the distribution.
+
+
+```{r}
+lowerq = quantile(vect)[2]
+upperq = quantile(vect)[4]
+innerq = upperq - lowerq #Or use IQR(data)
+threshold.upper = (innerq * 1.5) + upperq
+threshold.lower = lowerq - (innerq * 1.5)
+outlier<-sum((vect>threshold.upper))+sum((vect<threshold.lower))
+outlier
+##############################
+
+```
+So there are 3 outliers here based on this definition that we coded.
+
+```{r}
+
+miu<-mean(DATA$B)
+sdd<-sd(DATA$B)
+my_B<-rnorm(length(DATA$B),miu,sdd)
+df<-data.frame(x=DATA$B,Type=as.factor('Real'))
+df<-rbind(df,data.frame(x=my_B,Type=as.factor('Predicted')))
+
+g0<-ggplot(data=df)+aes(x=x,color=Type)+geom_density()
+g0
+
+
+```
+
+
+
+
+##Column C
+```{r}
+#Column C
+
+g0<-ggplot(data=DATA)
+g3<-g0+aes(x=C)+geom_density()
+g3
+vect<-DATA$C
+summary(vect)
+```
+
+Based on the fact that the mean is slightly larger than the median, we can say this distribution is slightly right skewed.
+However, we can not visually detect that. Most of the values are located between 5 and 8. 
+
+```{r}
+lowerq = quantile(vect)[2]
+upperq = quantile(vect)[4]
+innerq = upperq - lowerq #Or use IQR(data)
+threshold.upper = (innerq * 1.5) + upperq
+threshold.lower = lowerq - (innerq * 1.5)
+outlier<-sum((vect>threshold.upper))+sum((vect<threshold.lower))
+outlier
+###############################
+```
+Based on the outlier definition that is coded, there is no outlier.
+
+```{r}
+
+
+miu<-mean(DATA$C)
+sdd<-sd(DATA$C)
+my_C<-rnorm(length(DATA$C),miu,sdd)
+df<-data.frame(x=DATA$C,Type=as.factor('Real'))
+df<-rbind(df,data.frame(x=my_C,Type=as.factor('Predicted')))
+
+g0<-ggplot(data=df)+aes(x=x,color=Type)+geom_density()
+g0
+
+```
+
+
+##Column D
+```{r}
+#Column D
+
+g0<-ggplot(data=DATA)
+g4<-g0+aes(x=D)+geom_density()
+g4
+vect<-DATA$D
+summary(vect)
+```
+
+The mean and median are very close an d the distribution look like a normal distribution. However, we might have a few outliers.
+
+
+```{r}
+lowerq = quantile(vect)[2]
+upperq = quantile(vect)[4]
+innerq = upperq - lowerq #Or use IQR(data)
+threshold.upper = (innerq * 1.5) + upperq
+threshold.lower = lowerq - (innerq * 1.5)
+outlier<-sum((vect>threshold.upper))+sum((vect<threshold.lower))
+outlier
+###############################
+```
+we have 2 outliers based on the definition.
+
+```{r}
+miu<-mean(DATA$D)
+sdd<-sd(DATA$D)
+my_D<-rnorm(length(DATA$D),miu,sdd)
+df<-data.frame(x=DATA$D,Type=as.factor('Real'))
+df<-rbind(df,data.frame(x=my_D,Type=as.factor('Predicted')))
+
+g0<-ggplot(data=df)+aes(x=x,color=Type)+geom_density()
+g0
+
+```
+
+
+##Column E
+```{r}
+#Column E
+
+g0<-ggplot(data=DATA)
+g5<-g0+aes(x=E)+geom_density()
+g5
+vect<-DATA$E
+summary(vect)
+```
+Here the distribution is close to a uniform distribution. 
+
+
+```{r}
+lowerq = quantile(vect)[2]
+upperq = quantile(vect)[4]
+innerq = upperq - lowerq #Or use IQR(data)
+threshold.upper = (innerq * 1.5) + upperq
+threshold.lower = lowerq - (innerq * 1.5)
+outlier<-sum((vect>threshold.upper))+sum((vect<threshold.lower))
+outlier
+###############################
+
+```
+No outlier found. 
+
+
+```{r}
+
+
+
+miu<-mean(DATA$E)
+
+my_E<-runif(length(DATA$E),50,330)
+df<-data.frame(x=DATA$E,Type=as.factor('Real'))
+df<-rbind(df,data.frame(x=my_E,Type=as.factor('Predicted')))
+
+g0<-ggplot(data=df)+aes(x=x,color=Type)+geom_density()
+g0
+
+
+
+```
+

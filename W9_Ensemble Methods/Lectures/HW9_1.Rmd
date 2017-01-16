@@ -1,0 +1,52 @@
+---
+title: "HW9_1"
+output: html_document
+---
+
+####Q1) One key problem of ensemble methods is to obtain diverse ensembles; what characterizes a “diverse ensemble”?   
+
+If the classifiers (as member of the ensembles) make different kinds of error, that would encourage the diversity of an ensemble. Empirically, ensembles tend to yield better results when there is a significant diversity among the models. Many ensemble methods, therefore, seek to promote diversity among the models they combine. Although perhaps non-intuitive, more random algorithms (like random decision trees) can be used to produce a stronger ensemble than very deliberate algorithms (like entropy-reducing decision trees).
+<br>
+<br>
+
+####Q2) What is the key idea of boosting? How does the boosting differ from bagging? Does the boosting approach encourage the creating of diverse ensemble?
+
+The idea behind Boosting is to assign weights to each training data based on misclassification of the model with that training data. If a data point is misclassified in our learned classifier, that data point would be weighted more in order to be considered more in our learning classifier. 
+
+However, in bagging, there is no weight but K classifiers would be learning based on K different randomly selected tarining data. And finally the most voted class would be selected as the winner. 
+
+Boosting tends to have more overfitting problem, however, Bagging is very good in not having Overfitting problem. However, Bagging more likely to produce Bias problem. 
+Emperically speaking, Boosting has better performance. 
+
+Bossting will encourage the creation of diverse ensemble since it undelibrately weights up the data points that are misclassified. This will create more diverse ensembles while more compatible with our training dataset.
+<br>
+<br>
+
+####Q3) Some ensemble algorithms restart if the accuracy of classifiers drops below 50%. Why? 
+Using ensembles whose base classifiers have a below 50% accuracy leads to
+a drop in accuracy: the ensemble classifier performs worse than the base
+classifiers themselves, and the drop is higher if the base classifiers make
+different kind of errors.  
+
+<br>
+<br>
+
+####Q4) Given a large number of n indepenent voters (say millions), and a probability p that they make the "correct" vote, at what probability would you trust the decision of  n indepenent voters. When wouldn't you trust  n voters decisions even at large n,    
+
+The probability of making a correct result from voting on n classifier can be found as follows:
+$$
+\sum\limits_{k=(n/2)+1}^n \binom n k  p^k(1-p)^{n-k}
+$$ 
+
+This equation can be used only for p>0.5.
+If P<0.5, by increasing n, the response accuracy gets worth. Therfore, the single base classifier has better response than n classifier.  
+For P<=0.5, Ensemble methods are NOT used. 
+
+
+
+
+
+
+
+
+------------------------------------------------

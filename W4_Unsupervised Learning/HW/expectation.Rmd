@@ -1,0 +1,170 @@
+# Assingment
+
+##1)  Use the same dataset you use for M04 Lesson 02 for the partition (k-means,PAM) and hierarchical clustering from the he the [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/ml/)  
+
+The dataset contains eight attributes (or features, denoted by X1...X8) and two responses (or outcomes, denoted by y1 and y2). The aim is to use the eight features to predict each of the two responses. 
+
+Specifically: 
+X1  Relative Compactness 
+X2  Surface Area 
+X3  Wall Area 
+X4	Roof Area 
+X5	Overall Height 
+X6	Orientation 
+X7	Glazing Area 
+X8	Glazing Area Distribution 
+y1	Heating Load 
+y2	Cooling Load
+
+source: UC Irvine   "https://archive.ics.uci.edu/ml/machine-learning-databases/00242/ENB2012_data.xlsx"
+
+
+```{r}
+
+
+
+building0<-read.csv(file="C:/Users/nabian.m/Desktop/ENB2012_data.csv",header=TRUE)
+
+head (building0)
+building0$X=NULL
+building0$X.1=NULL
+head(building0)
+str(building0)
+
+sum(is.na(building0$X4))
+
+building1<-building0
+building1$X4=NULL
+building1<-na.omit(building1)
+
+```
+since we are doing unsupervised learning, we forget the labels Y1 and Y2 and try to work with the attributes :
+{X1,X2,X3,X5,X6,X7,X8}
+
+```{r}
+XX<-building1[c("X1","X2","X3","X5","X6","X7","X8")]
+
+
+```
+
+
+
+##2) Cluster some of your data using EM based clustering.
+
+Answer the following questions:  
+* How did you choose a model for EM?
+```{r}
+#install.packages("mclust")
+require(mclust)
+fit <- Mclust(XX)
+fit
+summary(fit)
+
+```
+    
+    
+###* Evaluate the  model performance.  
+
+
+As we can see the model provides two clustering which maximizes the liklihood of the observations. 
+The resulting BIC is 20472 nad ICL is 20472. 
+The log of likelihood is 10468.73.
+the EEV model with 2 component has choosen as the optimum. 
+It seems to me that having two clusters that is suggested by the EM method really make sense based on the general size of the dwelings. Big size and small size. So it makes perfectly sense that we have two clusters. 
+Now lets plot the results from the EM analysis: 
+
+```{r}
+# 1: BIC
+plot(fit, what = "BIC")
+#table(class, fit$BIC)
+#2: classification
+plot(fit, what = "classification")
+#table(class, fit$classification)
+# 3: uncertainty
+plot(fit, what = "uncertainty")
+#table(class, fit$uncertainty)
+# 4: density
+plot(fit, what = "density")
+#table(class, fit$density)
+
+```
+
+These plots provised a great amount of visualized information for the clustering, uncertainity and density. 
+As we seek for lower BIC, we end up to two parametes. 
+    
+ 
+###* Cluster some of your data using EM based clustering that you also used for k-means,PAM. and hierarchical clustering.   
+
+As we mentioned, 
+```{r}
+fit <- Mclust(XX)
+fit
+summary(fit)
+fit$classification 
+ 
+```
+
+###Answer the following questions:     
+    How do the clustering appaoches compare on the same data?  
+
+Write up your report as an .Rmd file.  
+
+
+Since EM has provided 2 clusters for the data, Here 
+### Kmeans
+```{r}
+
+
+k=2;
+trails<-40
+kmean_cluster<-kmeans(XX,k,nstart=trails)
+kmean_cluster
+
+kmean_cluster$cluster
+kmean_cluster$centers
+
+```
+
+### K_mediods (PAM)
+
+```{r}
+require(cluster)
+## Loading required package: cluster
+require(amap)
+## Loading required package: amap
+require(useful)
+## Loading required package: useful
+kmed_cluster<-pam(XX,2,keep.dis=TRUE,keep.data=TRUE)
+
+kmed_cluster$cluster
+kmed_cluster$clusinfo
+
+```
+
+#Hierarchial Clustering
+
+```{r}
+a<-hclust(d=dist(XX),method="single")
+cutree(a, k=2)
+```
+
+
+
+now lets compre pam , kmeans and hierarchial clustering with the EM method by creating tables:
+
+
+
+```{r}
+table(kmean_cluster$cluster,fit$classification )
+
+table(kmean_cluster$cluster,fit$classification )
+
+table(cutree(a, k=2),fit$classification )
+```
+We see there is the EXACT match for ALL the clusterings of the data for the ALL 4 methods.
+That gives me the insight that these 4 method perfomance will be the same for low amount of clusters, but they might be sensitive to higher cluster numbers. 
+
+
+
+ 
+

@@ -1,0 +1,371 @@
+---
+title: "Homework 2"
+author: "Mohsen Nabian"
+date: "9/28/2015"
+output: html_document
+---
+
+##This homework assignment focuses on Linear Models, Model Inference and Interpretation. You will provide a written analysis based on the following information:
+
+###First, load the file M01_quasi_twitter.csv (it is online at http://nikbearbrown.com/YouTube/MachineLearning/M01/M01_quasi_twitter.csv'). Next, generate a linear model for the following:
+
+
+
+
+
+```{r}
+
+data_url <- 'http://nikbearbrown.com/YouTube/MachineLearning/M01/M01_quasi_twitter.csv'
+twitter <- read.csv(data_url,header = TRUE,sep=",")
+twitter<-na.omit(twitter)
+#fix(twitter)
+names(twitter)
+str(twitter)
+```
+
+
+###1)  Two significant linear models of your choosing (Note that you may need to try a few models before finding two significant linear models)
+
+here we test several models to find significant relationships. 
+
+```{r}
+lm1<-lm(favourited_count~friends_count,data=twitter)
+summary(lm1)
+lm2<-lm(favourited_count~statuses_count,data=twitter)
+summary(lm2)
+lm3<-lm(favourited_count~followers_count,data=twitter)
+summary(lm3)
+lm4<-lm(favourited_count~age,data=twitter)
+summary(lm4)
+lm5<-lm(favourited_count~dob_month,data=twitter)
+summary(lm5)
+lm6<-lm(wage~age,data=twitter)
+summary(lm6)
+lm7<-lm(friends_count~height,data=twitter)
+summary(lm7)
+lm8<-lm(favourited_count~height,data=twitter)
+summary(lm8)
+lm9<-lm(favourited_count~wage,data=twitter)
+summary(lm9)
+lm10<-lm(retweeted_count~wage,data=twitter)
+summary(lm10)
+lm11<-lm(retweeted_count~friends_count,data=twitter)
+summary(lm11)
+lm12<-lm(retweeted_count~dob_month,data=twitter)
+summary(lm12)
+lm13<-lm(retweeted_count~followers_count,data=twitter)
+summary(lm13)
+lm14<-lm(retweet_count~wage,data=twitter)
+summary(lm14)
+lm15<-lm(retweet_count~friends_count,data=twitter)
+summary(lm15)
+lm16<-lm(retweet_count~dob_month,data=twitter)
+summary(lm16)
+lm17<-lm(retweet_count~followers_count,data=twitter)
+summary(lm17)
+lm18<-lm(friends_count~created_at_year,data=twitter)
+summary(lm18)
+```
+
+
+####So I choose the following sigfnificant models (lm20 and lm21): 
+
+```{r}
+lm20<-lm(favourited_count~followers_count+statuses_count+friends_count,data=twitter)
+summary(lm20)
+
+lm21<-lm(friends_count~created_at_year,data=twitter)
+summary(lm21)
+
+```
+
+
+
+###2)A multivariate relation between wage & height, race, age, education, and experience
+
+```{r}
+
+lm22<-lm(wage ~height+race+age+education+experience,data=twitter)
+summary(lm22)
+
+```
+SO based on the multivarient linear regression, wage has significant linear relation with height. SO as you are taller, your wage is higher. Moreover, wage did not depend on the race, sex and even experience as well as education. 
+
+
+###3) A significant logistic linear model of your choosing :
+
+
+I am planning to remove the outliers prior to do the logistic regression. 
+We assume the outlier coefficient to be equal to 2.
+
+```{r}
+twitter1<-twitter
+```
+### 1)Height: 
+```{r}
+require('ggplot2')
+vect<-twitter1$height
+p <- ggplot(twitter)+ aes(x=gender,y=height)
+
+p + geom_boxplot()
+
+lowerq = quantile(vect)[2]
+upperq = quantile(vect)[4]
+innerq = upperq - lowerq #Or use IQR(data)
+threshold.upper = (innerq * 2) + upperq
+threshold.lower = lowerq - (innerq * 2)
+outlier<-sum((vect>threshold.upper))+sum((vect<threshold.lower))
+outlier
+#There is NO outlier in Height
+```
+
+### 2)age: 
+
+```{r}
+vect<-twitter1$age
+p <- ggplot(twitter1)+ aes(x=gender,y=age)
+
+p + geom_boxplot()
+
+lowerq = quantile(vect)[2]
+upperq = quantile(vect)[4]
+innerq = upperq - lowerq #Or use IQR(data)
+threshold.upper = (innerq * 2) + upperq
+threshold.lower = lowerq - (innerq * 2)
+outlier<-sum((vect>threshold.upper))+sum((vect<threshold.lower))
+outlier
+outlier_values<-vect[which((vect>threshold.upper)|(vect<threshold.lower))]
+outlier_values
+
+outlier_index<-which((vect>threshold.upper)|(vect<threshold.lower))
+outlier_index
+
+dim(twitter1)
+twitter1<-twitter1[-outlier_index,]
+dim(twitter1)
+```
+
+### 3)experience
+
+```{r}
+vect<-twitter1$experience
+p <- ggplot(twitter)+ aes(x=gender,y=experience)
+
+p + geom_boxplot()
+
+lowerq = quantile(vect)[2]
+upperq = quantile(vect)[4]
+innerq = upperq - lowerq #Or use IQR(data)
+threshold.upper = (innerq * 2) + upperq
+threshold.lower = lowerq - (innerq * 2)
+outlier<-sum((vect>threshold.upper))+sum((vect<threshold.lower))
+outlier
+outlier_values<-vect[which((vect>threshold.upper)|(vect<threshold.lower))]
+outlier_values
+
+outlier_index<-which((vect>threshold.upper)|(vect<threshold.lower))
+outlier_index
+
+dim(twitter1)
+twitter1<-twitter1[-outlier_index,]
+dim(twitter1)
+```
+
+### 4)friends_count
+```{r}
+
+vect<-twitter1$friends_count
+p <- ggplot(twitter)+ aes(x=gender,y=friends_count)
+
+p + geom_boxplot()
+
+lowerq = quantile(vect)[2]
+upperq = quantile(vect)[4]
+innerq = upperq - lowerq #Or use IQR(data)
+threshold.upper = (innerq * 2) + upperq
+threshold.lower = lowerq - (innerq * 2)
+outlier<-sum((vect>threshold.upper))+sum((vect<threshold.lower))
+outlier
+outlier_values<-vect[which((vect>threshold.upper)|(vect<threshold.lower))]
+outlier_values
+
+outlier_index<-which((vect>threshold.upper)|(vect<threshold.lower))
+outlier_index
+
+dim(twitter1)
+twitter1<-twitter1[-outlier_index,]
+dim(twitter1)
+
+
+
+
+```
+
+### 5)followers_count
+```{r}
+
+vect<-twitter1$followers_count
+p <- ggplot(twitter)+ aes(x=gender,y=followers_count)
+
+p + geom_boxplot()
+
+lowerq = quantile(vect)[2]
+upperq = quantile(vect)[4]
+innerq = upperq - lowerq #Or use IQR(data)
+threshold.upper = (innerq * 2) + upperq
+threshold.lower = lowerq - (innerq * 2)
+outlier<-sum((vect>threshold.upper))+sum((vect<threshold.lower))
+outlier
+outlier_values<-vect[which((vect>threshold.upper)|(vect<threshold.lower))]
+outlier_values
+
+outlier_index<-which((vect>threshold.upper)|(vect<threshold.lower))
+outlier_index
+
+dim(twitter1)
+twitter1<-twitter1[-outlier_index,]
+dim(twitter1)
+```
+
+### 6)statuses_count
+```{r}
+vect<-twitter1$statuses_count
+p <- ggplot(twitter)+ aes(x=gender,y=statuses_count)
+
+p + geom_boxplot()
+
+lowerq = quantile(vect)[2]
+upperq = quantile(vect)[4]
+innerq = upperq - lowerq #Or use IQR(data)
+threshold.upper = (innerq * 2) + upperq
+threshold.lower = lowerq - (innerq * 2)
+outlier<-sum((vect>threshold.upper))+sum((vect<threshold.lower))
+outlier
+outlier_values<-vect[which((vect>threshold.upper)|(vect<threshold.lower))]
+head(outlier_values)
+
+outlier_index<-which((vect>threshold.upper)|(vect<threshold.lower))
+head(outlier_index)
+
+dim(twitter1)
+twitter1<-twitter1[-outlier_index,]
+dim(twitter1)
+```
+
+
+
+here is the proposed logistic regression:
+```{r}
+names(twitter1)
+mylogit<-glm(gender~height+race+age+education+experience+friends_count+followers_count+statuses_count+dob_month,data=twitter,family = "binomial")
+
+summary(mylogit)
+```
+
+
+
+Answer the following questions:
+-	Is the relationship significant?
+
+apparently there are some significant and insignificant relationships in the regression. 
+
+-	Are any model assumptions violated?
+
+in order to recieve a unbiased analysis we need to have the data to be taken randomely. For instance, the data is dominately taken from USA users. SO cultrully data is dominant by US people life style and culture rather than the asian users like china. 
+
+
+
+-	Is there any multi-colinearity in multivariate models?
+
+we can use VIF function to check for multicollinearity. A rule of thumb is that a VIF greater than 10 for a variable suggests strong multicollinearity. However here we simply use cor() as suggested in the lecture.the more the corrolation is close to 1, the more colinearity is strong.
+```{r}
+cor(twitter$friends_count,twitter$followers_count)
+cor(twitter$friends_count,twitter$statuses_count)
+cor(twitter$height,twitter$friends_count)
+cor(twitter$statuses_count,twitter$followers_count)
+cor(twitter$height,twitter$followers_count)
+```
+
+yes, there are several colinearity exists as we expected. 
+This colinearity is very strong between 'friends-count' and 'followers-count' 
+it is also strong but less between 'friends-count' and 'statuse-count' and between 'statuses_count' and 'followes count' 
+
+This in fact make sense according to  the social facts and quite anticipated.
+
+However, there is no colinearity between heigh and those parameters.
+
+It is important to notice that alghough colinearity might affect individual coefficients of linear regression, it does not affect (too much) the prediction accuracy of y. 
+
+
+-	In in multivariate models are predictor variables independent of all the other predictor variables?
+
+No, They are not completely independent. In the previous section it is shown that there is some relationship between 'friends-count', 'followers-count' and 'statuses-count'. SInce the corolation value is high there is some relationship between these parameters. 
+However, other parameters like age and height are quite independent. 
+
+Here we plot some of those to visually see the  relationships or lack of relationships (height):
+```{r}
+require('ggplot2')
+ggplot(data=twitter1)+aes(x=friends_count,y=followers_count)+geom_point()+geom_smooth(method=lm,se=TRUE)
+
+
+ggplot(data=twitter1)+aes(x=friends_count,y=statuses_count)+geom_point()+geom_smooth(method=lm,se=TRUE)
+
+ggplot(data=twitter1)+aes(x=followers_count,y=statuses_count)+geom_point()+geom_smooth(method=lm,se=TRUE)
+
+ggplot(data=twitter1)+aes(x=friends_count,y=height)+geom_point()+geom_smooth(method=lm,se=TRUE)
+
+```
+
+
+
+
+
+###In in multivariate models rank the most significant predictor variables and exclude insignificant one from the model.
+
+The most significant variables in the current model are as follows :(In the order of p-value, the lowest p-value the most significant)
+1-height (+)
+2-followers_count  (-)
+3-friends_count (+)
+4-statuses_count (+)
+5-racepersian (+)
+5-dob_month (-)
+
+'+' sign signifies that increase on that parameters increases the chance of being "male" user.
+'-' sign signifies that increase on that parameters increases the chance of being "female" user.
+
+lets redo the regression by eliminating the insignificant paramteres: 
+```{r}
+mylogit2<-glm(gender~height+race+friends_count+followers_count+statuses_count+dob_month,data=twitter,family = "binomial")
+
+summary(mylogit2)
+
+```
+
+
+
+
+
+###) After removing insignificant parameters we have almost the same results.
+
+-	Does the model make sense? Write up your report as an .Rmd file.
+
+The model makes sense for the following variables: 
+
+1) Height: 
+the model shows by increasing height the chance of the user to be male would increase. This is infact a true deduction since the average height of male is higher than the average height of female. 
+
+2) racepersian:
+Since I am an iranian, I know the iranian culture. I beilieve this result is rooted depply to the iranian and islamic culture. The fact that Iranian young people are more active in social activities and women are less expose themselves is in fact quite well understood. So if you see a person posts a twitter, this post most likly belongs to a male user if he or she is from Iran (Persia)
+
+3) Friends count:
+The model suggests that the those with higher friends increases the chance of being a male user. This could be to some extent true especially in eastern culture somehow similar to the reasons I pointed out in the previous paragraph. However, since the data is dominated for american, this might interestingly tell that the friendship connection might slightly more in male subjects even in america.
+
+4) statuses count: 
+The result suggests that those users who put more posts on social media might be more likely male users. This is also consistant with the previous reasoning. 
+
+5) dob_month:
+I do believe that dob_month should be uniformly distributed among all people. Since the process of becomming a male or female and DNA formatin all is proven to be independent of time and is merely happening by chance 50% so this relationship could not be true. As we see, the significance level is also low (p-value high) telling us that it might not be a true relationship. 
+
+
+So in summary the logistic regression analysis mostly make sense and gives us great insight toward social sciences.   
+

@@ -1,0 +1,40 @@
+---
+title: "HW10_1"
+output: html_document
+---
+
+# Assingment
+
+* A certain disease has an incidence rate of 2%.  If the false negative rate is 10% and the false positive rate is 1%, compute the probability that a person who tests positive actually has the disease.   
+
+
+$$
+P(disease|positive) = \frac{P(disease)\, P(positive | disease)}{P(disease)P(positive|disease)+P(no \quad  disease)P(positive|no \quad disease)},
+$$
+
+$$P(disease)=0.02$$
+$$P(positive | disease)=1-P(no \quad  positive|disease)=1-0.1=0.9$$
+$$P(no \quad  disease)=1-P(disease)=1-0.02=0.98$$
+$$P(positive|no \quad disease)=0.01$$
+```{r}
+p<-(0.9*0.02)/(0.02*0.9+0.98*0.01)
+p
+```
+
+* About 0.01% of data scientists with no known risk behavior are infected with cooties.  The false negative rate for the standard cooties test 0.01% and the false positive rate is also 0.01%.  If a randomly selected data scientist with no known risk behavior tests positive for cooties, what is the probability that she is actually infected with cooties?   
+
+
+$$
+P(cooties|positive) = \frac{P(cooties)\, P(positive | cooties)}{P(cooties)P(positive|cooties)+P(no \quad  cooties)P(positive|no \quad cooties)},
+$$
+
+$$P(cooties)=0.01$$
+$$P(positive | cooties)=1-P(no \quad  positive|cooties)=1-0.01=0.99$$
+$$P(no \quad  cooties)=1-P(cooties)=1-0.01=0.99$$
+$$P(positive|no \quad cooties)=0.01$$
+
+```{r}
+p<-(0.01*0.99)/(0.01*0.99+0.99*0.01)
+p  
+```
+

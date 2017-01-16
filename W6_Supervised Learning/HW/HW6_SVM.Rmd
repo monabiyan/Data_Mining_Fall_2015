@@ -1,0 +1,168 @@
+
+* Go to the [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/ml/) and find a dataset for supervised classification. Every student MUST use a different dataset so you MUST get approved for which you can going to use. This can be the same dataset you used for the unsupervised clustering as long as the data has some labeled data.  
+
+```{r}
+#install.packages("e1071");
+#install.packages("kernlab");
+
+
+
+require(ggplot2)
+## Loading required package: ggplot2
+require(e1071)
+## Loading required package: e1071
+require(kernlab)
+## Loading required package: kernlab
+
+
+
+#####
+data_address<-"http://archive.ics.uci.edu/ml/machine-learning-databases/00292/Wholesale%20customers%20data.csv"
+data0<-read.csv(file=data_address)
+head(data0)
+summary(data0)
+
+#Randomly Shuffling Data
+shuff<-runif(nrow(data0))
+data1<-data0[order(shuff),]
+#####
+
+#Scaling data
+data2<-as.data.frame(lapply(data1[,-1], scale))
+head(data2)
+#####
+
+# Constructing Training and Test Data
+0.2*nrow(data1)
+X.training<-data2[1:360,]
+Y.training<-data1[1:360,1]
+X.test<-data2[361:nrow(data1),]
+Y.test<-data1[361:nrow(data1),1]
+table(Y.training)
+table(Y.test)
+#####
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+* Classify your data using Support Vector Machines. You can use any method/package for SVMs. Answer the following questions:
+
+```{r}
+df.training<-cbind(X.training,label=Y.training)
+dim(df.training)
+df.test<-cbind(X.test,label=Y.test)
+dim(df.test)
+
+names(df.training)
+svm.fit<- svm(as.factor(label)~.,data=df.training, kernal="radial",cost=10,scale=TRUE)
+svm.fit$index #lists the support vectors
+
+# plot(svm.fit,df.training)
+summary(svm.fit)
+
+
+
+#Lets change the cost value
+
+svm.fit1<- svm(as.factor(label)~.,data=df.training, kernal="linear",cost=0.1,scale=FALSE)
+
+
+
+#Cross-Validation -Find Best Model for prediction 
+tune.out<- tune(svm,as.factor(label)~.,data=df.training,kernal="linear",ranges=list(cost=c(0.001,0.01,0.1,1,5,10,100)))
+bestmodel=tune.out$best.model
+summary(bestmodel)
+```
+
+So as we see best kernel is selected as radial with cost=1.
+
+
+
+
+
+* How well does the classifier perform?
+
+```{r}
+
+ypred=predict(bestmodel,X.test)
+ypred
+table(pred=ypred,truth=Y.test)
+
+```
+
+The table shows that the prediction has been misclassified on 11 points. 
+
+
+
+
+
+
+*Try different kernels. How do they effect its performce?  
+
+
+
+
+Lets see how different kernels result in different models:
+```{r}
+#1) Linear 
+svm.fit2<- svm(as.factor(label)~.,data=df.training, kernal="linear",cost=0.1,scale=FALSE)
+ypred=predict(svm.fit2,X.test)
+table(pred=ypred,truth=Y.test)
+
+#misclassification=8 points
+
+#2)polynomial
+svm.fit3<- svm(as.factor(label)~.,data=df.training, kernal="polynomial",cost=0.1,scale=FALSE)
+ypred=predict(svm.fit3,X.test)
+table(pred=ypred,truth=Y.test)
+
+#misclassification=8 points
+
+#3)radial
+svm.fit4<- svm(as.factor(label)~.,data=df.training, kernal="radial",cost=0.1,scale=FALSE)
+ypred=predict(svm.fit4,X.test)
+table(pred=ypred,truth=Y.test)
+
+#misclassification=8 points
+
+#4)sigmoid
+svm.fit5<- svm(as.factor(label)~.,data=df.training, kernal="sigmoid",cost=0.1,scale=FALSE)
+ypred=predict(svm.fit5,X.test)
+table(pred=ypred,truth=Y.test)
+
+#misclassification=8 points
+
+```
+
+So for this particular dataset, over all different kernel types we ends up the same accuracy for the test data.
+The accuracy is 0.8875.
+We should note that for each kernels chosen, there are variables to be selected but here we assumed the default values. 
+
+
+
+
+
+
+
+
+*What might improve its performce?
+
+
+1)one way to improve the model is to observe the data and try to intuitively percieve the underlying implicit classification
+that exists on tghe data. With this method we can decide much better on the kernel method.
+2) We have to decide on Cost. This might also affect the model significantly. By making a loop over Cost values,
+we can further find the best fitted possible model that describles the test data well.
+3) As a matter of fact if e provide a loop that find the best values for kernel and cost, we would find
+the best as possible for the SVM. However, we should note that we would be better to cross validate over cross validation data
+set rather than training set. In this hw, the training set is utilized for cross validation.
